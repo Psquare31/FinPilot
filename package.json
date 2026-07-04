@@ -1,0 +1,28 @@
+{
+  "name": "finpilot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal Finance & Investment Analytics Platform",
+  "license": "MIT",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Psquare31/FinPilot.git"
+  },
+  "keywords": [
+    "mern",
+    "finance",
+    "fintech",
+    "react",
+    "express",
+    "mongodb",
+    "nodejs"
+  ],
+  "author": "Mayank Nishant",
+  "devDependencies": {
+    "prettier": "^3.9.4"
+  }
+}
