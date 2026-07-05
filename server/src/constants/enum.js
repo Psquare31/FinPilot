@@ -116,10 +116,11 @@ export const TRANSACTION_STATUS = [
   "cancelled",
 ];
 
-export const RECURRENCE_TYPES = [
+export const RECURRENCE_FREQUENCIES = [
   "daily",
   "weekly",
   "monthly",
+  "quarterly",
   "yearly",
 ];
 
@@ -235,4 +236,154 @@ export const AUDIT_ACTIONS = [
   "restore",
   "login",
   "logout",
+];
+
+export const PAYMENT_METHODS = [
+  "cash",
+  "bank_transfer",
+  "upi",
+  "credit_card",
+  "debit_card",
+  "wallet",
+  "cheque",
+  "other",
+];
+
+export const TRANSACTION_PRIORITIES = [
+  "low",
+  "medium",
+  "high",
+];
+
+export const MERCHANT_TYPES = [
+  "individual",
+  "business",
+  "government",
+  "other",
+];
+
+export const INVESTMENT_TRANSACTION_TYPES = [
+  "buy",
+  "sell",
+  "dividend",
+  "bonus",
+  "split",
+  "interest",
+];
+
+export const INVESTMENT_TRANSACTION_STATUS = [
+  "pending",
+  "completed",
+  "cancelled",
+];
+
+export const DEBT_STATUS = [
+  "active",
+  "closed",
+  "defaulted",
+];
+
+export const REPAYMENT_FREQUENCIES = [
+  "weekly",
+  "monthly",
+  "quarterly",
+  "yearly",
+];
+
+export const NOTIFICATION_STATUS = [
+  "unread",
+  "read",
+];
+
+export const NOTIFICATION_PRIORITIES = [
+  "low",
+  "medium",
+  "high",
+];
+
+export const NOTIFICATION_CHANNELS = [
+  "in_app",
+  "email",
+  "push",
+];
+
+export const INVITATION_STATUS = [
+  "pending",
+  "accepted",
+  "rejected",
+  "expired",
+  "cancelled",
+];
+
+export const REPORT_STATUS = [
+  "pending",
+  "generating",
+  "completed",
+  "failed",
+];
+
+export const REPORT_FORMATS = [
+  "pdf",
+  "csv",
+  "xlsx",
+];
+
+export const REPORT_TYPES = [
+  "monthly",
+  "quarterly",
+  "yearly",
+  "budget",
+  "investment",
+  "cashflow",
+  "networth",
+  "custom",
+];
+
+export const AUDIT_ACTIONS = [
+  "create",
+  "update",
+  "delete",
+  "restore",
+  "archive",
+  "login",
+  "logout",
+  "invite",
+  "accept_invitation",
+  "reject_invitation",
+  "transfer",
+  "export",
+  "generate_report",
+];
+
+export const AUDIT_RESOURCES = [
+  "user",
+  "workspace",
+  "workspace_member",
+  "account",
+  "transaction",
+  "category",
+  "budget",
+  "goal",
+  "investment",
+  "investment_transaction",
+  "debt",
+  "notification",
+  "report",
+  "invitation",
+];
+
+export const AI_FEATURES = [
+  "chat",
+  "transaction_categorization",
+  "budget_recommendation",
+  "financial_insight",
+  "receipt_analysis",
+  "investment_analysis",
+  "forecasting",
+  "report_generation",
+];
+
+export const AI_INTERACTION_STATUS = [
+  "success",
+  "failed",
 ];
