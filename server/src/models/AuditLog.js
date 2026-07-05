@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import {
   AUDIT_ACTIONS,
   AUDIT_RESOURCES,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 const { Schema } = mongoose;
 

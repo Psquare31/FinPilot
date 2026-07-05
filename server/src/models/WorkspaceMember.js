@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import {
   WORKSPACE_ROLES,
   MEMBER_STATUS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 import {
   DEFAULT_ROLE_PERMISSIONS,

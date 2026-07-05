@@ -5,7 +5,7 @@ import {
   USER_THEMES,
   USER_CURRENCIES,
   ACCOUNT_STATUS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 const { Schema } = mongoose;
 

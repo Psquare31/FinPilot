@@ -4,7 +4,7 @@ import {
   DEBT_TYPES,
   DEBT_STATUS,
   REPAYMENT_FREQUENCIES,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 import moneySchema from "./schemas/Money.js";
 import auditSchema from "./schemas/Audit.js";

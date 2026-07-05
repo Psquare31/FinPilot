@@ -1,0 +1,32 @@
+export const AUDIT_ACTIONS = [
+  "create",
+  "update",
+  "delete",
+  "restore",
+  "archive",
+  "login",
+  "logout",
+  "invite",
+  "accept_invitation",
+  "reject_invitation",
+  "transfer",
+  "export",
+  "generate_report",
+];
+
+export const AUDIT_RESOURCES = [
+  "user",
+  "workspace",
+  "workspace_member",
+  "account",
+  "transaction",
+  "category",
+  "budget",
+  "goal",
+  "investment",
+  "investment_transaction",
+  "debt",
+  "notification",
+  "report",
+  "invitation",
+];

@@ -4,7 +4,7 @@ import crypto from "crypto";
 import {
   WORKSPACE_ROLES,
   INVITATION_STATUS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 const { Schema } = mongoose;
 

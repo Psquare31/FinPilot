@@ -4,7 +4,7 @@ import {
   TRANSACTION_TYPES,
   TRANSACTION_STATUS,
   PAYMENT_METHODS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 import moneySchema from "./schemas/Money.js";
 import locationSchema from "./schemas/Location.js";

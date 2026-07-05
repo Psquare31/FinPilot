@@ -5,7 +5,7 @@ import {
   NOTIFICATION_STATUS,
   NOTIFICATION_PRIORITIES,
   NOTIFICATION_CHANNELS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 const { Schema } = mongoose;
 

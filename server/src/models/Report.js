@@ -4,7 +4,7 @@ import {
   REPORT_TYPES,
   REPORT_STATUS,
   REPORT_FORMATS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 const { Schema } = mongoose;
 

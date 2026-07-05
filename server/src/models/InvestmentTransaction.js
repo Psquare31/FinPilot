@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import {
   INVESTMENT_TRANSACTION_TYPES,
   INVESTMENT_TRANSACTION_STATUS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 import moneySchema from "./schemas/Money.js";
 import auditSchema from "./schemas/Audit.js";

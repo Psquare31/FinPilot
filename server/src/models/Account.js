@@ -5,7 +5,7 @@ import {
   ACCOUNT_STATUS,
   USER_CURRENCIES,
   ACCOUNT_COLORS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 import generateSlug from "../utils/generateSlug.js";
 

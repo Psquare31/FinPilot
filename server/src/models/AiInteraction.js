@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import {
   AI_FEATURES,
   AI_INTERACTION_STATUS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 const { Schema } = mongoose;
 

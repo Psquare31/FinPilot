@@ -7,7 +7,7 @@ import {
   WORKSPACE_STATUS,
   WORKSPACE_COLORS,
   USER_CURRENCIES,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 const { Schema } = mongoose;
 

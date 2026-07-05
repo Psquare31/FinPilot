@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 import {
   CATEGORY_TYPES,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 import generateSlug from "../utils/generateSlug.js";
 

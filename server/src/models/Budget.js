@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 import {
   BUDGET_PERIODS,
-} from "../constants/enums.js";
+} from "../constants/index.js";
 
 import moneySchema from "./schemas/Money.js";
 import auditSchema from "./schemas/Audit.js";
