@@ -3,6 +3,7 @@ class ApiError extends Error {
         statusCode,
         message = "API Error --- An unexpected error occurred.",
         errors = [],
+        code = null,
         stack = ""
     ) {
         super(message);
@@ -10,12 +11,15 @@ class ApiError extends Error {
         this.name = this.constructor.name;
         this.statusCode = statusCode;
         this.success = false;
+        this.message = message;
         this.errors = errors;
-
-        Error.captureStackTrace(this, this.constructor);
+        this.code = code;
+        this.timestamp = new Date().toISOString();
 
         if (stack) {
             this.stack = stack;
+        } else {
+            Error.captureStackTrace(this, this.constructor);
         }
     }
 }
