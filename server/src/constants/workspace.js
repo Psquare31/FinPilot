@@ -32,3 +32,11 @@ export const MEMBER_STATUS = [
   "suspended",
   "removed",
 ];
+
+export const INVITATION_STATUS = [
+  "pending",
+  "accepted",
+  "rejected",
+  "cancelled",
+  "expired",
+];

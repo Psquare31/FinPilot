@@ -12,6 +12,7 @@ import {
     paginationSchema,
     searchSchema,
     dateRangeSchema,
+    dateRangeRefinement,
     sortOrderSchema,
 } from "./common.validator.js";
 
@@ -428,5 +429,6 @@ export const getSubscriptionsSchema =
                     .default(
                         "nextBillingDate"
                     ),
-            }),
+            })
+            .superRefine(dateRangeRefinement),
     });

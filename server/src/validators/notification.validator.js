@@ -12,6 +12,7 @@ import {
     paginationSchema,
     searchSchema,
     dateRangeSchema,
+    dateRangeRefinement,
     sortOrderSchema,
 } from "./common.validator.js";
 
@@ -216,7 +217,8 @@ export const getNotificationsSchema = z.object({
                     "expiresAt",
                 ])
                 .default("createdAt"),
-        }),
+        })
+        .superRefine(dateRangeRefinement),
 });
 
 // ======================================================

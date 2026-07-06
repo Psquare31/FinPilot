@@ -1,8 +1,28 @@
 import { z } from "zod";
 
+import { USER_CURRENCIES } from "../constants/index.js";
+
 export const objectId = z
     .string()
     .regex(/^[0-9a-fA-F]{24}$/, "Invalid ObjectId.");
+
+export const moneySchema = z.object({
+    amount: z.coerce
+        .number({
+            invalid_type_error: "Amount must be a number.",
+        })
+        .positive("Amount must be greater than zero."),
+
+    currency: z
+        .string()
+        .trim()
+        .toUpperCase()
+        .pipe(
+            z.enum(USER_CURRENCIES, {
+                errorMap: () => ({ message: "Invalid currency." }),
+            })
+        ),
+});
 
 export const paginationSchema = z.object({
     page: z.coerce
@@ -27,24 +47,27 @@ export const searchSchema = z.object({
         .optional(),
 });
 
-export const dateRangeSchema = z
-    .object({
-        fromDate: z.coerce.date().optional(),
-        toDate: z.coerce.date().optional(),
-    })
-    .superRefine((data, ctx) => {
-        if (
-            data.fromDate &&
-            data.toDate &&
-            data.fromDate > data.toDate
-        ) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["toDate"],
-                message: "To date must be after from date.",
-            });
-        }
-    });
+// Plain object (no refinement) so it can be safely `.merge()`d into
+// query schemas under Zod v4. Apply `dateRangeRefinement` on the
+// composed schema to keep the fromDate <= toDate cross-field check.
+export const dateRangeSchema = z.object({
+    fromDate: z.coerce.date().optional(),
+    toDate: z.coerce.date().optional(),
+});
+
+export const dateRangeRefinement = (data, ctx) => {
+    if (
+        data.fromDate &&
+        data.toDate &&
+        data.fromDate > data.toDate
+    ) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["toDate"],
+            message: "To date must be after from date.",
+        });
+    }
+};
 
 export const sortOrderSchema = z.object({
     sortOrder: z

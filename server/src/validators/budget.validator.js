@@ -10,6 +10,7 @@ import {
     paginationSchema,
     searchSchema,
     dateRangeSchema,
+    dateRangeRefinement,
     sortOrderSchema,
 } from "./common.validator.js";
 
@@ -214,5 +215,6 @@ export const getBudgetsSchema = z.object({
                     "budgetAmount.amount",
                 ])
                 .default("createdAt"),
-        }),
+        })
+        .superRefine(dateRangeRefinement),
 });
