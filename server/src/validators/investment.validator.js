@@ -11,6 +11,7 @@ import {
     paginationSchema,
     searchSchema,
     dateRangeSchema,
+    dateRangeRefinement,
     sortOrderSchema,
 } from "./common.validator.js";
 
@@ -204,5 +205,6 @@ export const getInvestmentsSchema = z.object({
                     "currentPrice.amount",
                 ])
                 .default("createdAt"),
-        }),
+        })
+        .superRefine(dateRangeRefinement),
 }); 
