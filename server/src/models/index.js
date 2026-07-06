@@ -18,3 +18,5 @@ export { default as Invitation } from "./Invitation.js";
 export { default as Report } from "./Report.js";
 export { default as AuditLog } from "./AuditLog.js";
 export { default as AiInteraction } from "./AiInteraction.js";
+
+export { default as Subscription } from "./Subscription.js";
