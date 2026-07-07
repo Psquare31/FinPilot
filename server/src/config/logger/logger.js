@@ -5,17 +5,15 @@ import env from "../env/index.js";
 const { combine, timestamp, printf, colorize, errors, json } =
     winston.format;
 
-// Human-friendly single-line format for local development.
 const devFormat = combine(
     colorize(),
-    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
     errors({ stack: true }),
     printf(({ level, message, timestamp: ts, stack }) => {
         return `${ts} [${level}]: ${stack || message}`;
     })
 );
 
-// Structured JSON for production log aggregation.
 const prodFormat = combine(
     timestamp(),
     errors({ stack: true }),

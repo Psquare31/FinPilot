@@ -29,7 +29,6 @@ const options = {
         security: [{ bearerAuth: [] }],
     },
 
-    // JSDoc @openapi comments are picked up from route and module files.
     apis: [
         "./src/routes/**/*.js",
         "./src/modules/**/*.js",

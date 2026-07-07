@@ -20,10 +20,6 @@ const startServer = async () => {
     }
 };
 
-// ======================================================
-// Graceful shutdown
-// ======================================================
-
 const shutdown = async (signal) => {
     logger.warn(`${signal} received. Shutting down gracefully...`);
 
@@ -41,10 +37,6 @@ const shutdown = async (signal) => {
         process.exit(0);
     }
 };
-
-// ======================================================
-// Process-level safety nets
-// ======================================================
 
 process.on("unhandledRejection", (reason) => {
     logger.error(`Unhandled Rejection: ${reason}`);

@@ -1,13 +1,7 @@
 import dotenv from "dotenv";
 import { z } from "zod";
 
-// Load variables from the server-local .env file.
 dotenv.config();
-
-// ======================================================
-// Schema for all environment variables the app depends on.
-// Fail fast at boot if anything critical is missing/invalid.
-// ======================================================
 
 const envSchema = z.object({
     NODE_ENV: z

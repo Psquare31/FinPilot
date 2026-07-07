@@ -16,12 +16,7 @@ import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
-// Behind a proxy (Railway/Render) so req.ip / secure cookies work.
 app.set("trust proxy", 1);
-
-// ======================================================
-// Security & parsing middleware
-// ======================================================
 
 app.use(helmet());
 
@@ -100,10 +95,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1", routes);
-
-// ======================================================
-// 404 + centralized error handling (must be last)
-// ======================================================
 
 app.use(notFound);
 app.use(errorHandler);
