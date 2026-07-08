@@ -11,11 +11,7 @@ class AccountService extends BaseService {
     super(Account);
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Create Account
-   * --------------------------------------------------------------------------
-   */
+  // Create Account
   async createAccount(data) {
     const workspace = await Workspace.findById(data.workspace);
 
@@ -47,11 +43,7 @@ class AccountService extends BaseService {
     return account;
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Get Account By Id
-   * --------------------------------------------------------------------------
-   */
+  // Get Account by ID
   async getAccountById(accountId) {
     const account = await this.model
       .findById(accountId)
@@ -65,11 +57,7 @@ class AccountService extends BaseService {
     return account;
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Get Workspace Accounts
-   * --------------------------------------------------------------------------
-   */
+  // Get Accounts
   async getAccounts(workspaceId, query) {
     const workspace = await Workspace.exists({
       _id: workspaceId,
@@ -97,11 +85,7 @@ class AccountService extends BaseService {
     return await features.execute();
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Update Account
-   * --------------------------------------------------------------------------
-   */
+  // Update Account
   async updateAccount(accountId, payload) {
     const account = await this.model.findById(accountId);
 
@@ -142,38 +126,22 @@ class AccountService extends BaseService {
     });
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Archive Account
-   * --------------------------------------------------------------------------
-   */
+  // Archive Account
   async archiveAccount(accountId) {
     return await this.softDelete(accountId);
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Restore Account
-   * --------------------------------------------------------------------------
-   */
+  // Restore Account
   async restoreAccount(accountId) {
     return await this.restore(accountId);
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Permanently Delete Account
-   * --------------------------------------------------------------------------
-   */
+  // Delete Account
   async permanentlyDeleteAccount(accountId) {
     return await this.deleteById(accountId);
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Total Balance
-   * --------------------------------------------------------------------------
-   */
+  // Get Total Balance
   async getTotalBalance(workspaceId) {
     const result = await this.aggregate([
       {
@@ -203,11 +171,7 @@ class AccountService extends BaseService {
     );
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Adjust Balance
-   * --------------------------------------------------------------------------
-   */
+  // Adjust Account Balance
   async adjustBalance(accountId, amount) {
     const account = await this.model.findById(accountId);
 
@@ -222,11 +186,7 @@ class AccountService extends BaseService {
     return account;
   }
 
-  /**
-   * --------------------------------------------------------------------------
-   * Check Account Exists
-   * --------------------------------------------------------------------------
-   */
+  // Check if Account Exists
   async accountExists(accountId) {
     return await this.model.exists({
       _id: accountId,

@@ -21,22 +21,10 @@ import {
 
 const router = Router();
 
-/*
-|--------------------------------------------------------------------------
-| Authentication
-|--------------------------------------------------------------------------
-*/
+// Authentication middleware 
 router.use(requireAuth);
 
-/*
-|--------------------------------------------------------------------------
-| Accounts
-|--------------------------------------------------------------------------
-|
-| POST   /accounts
-| GET    /accounts?workspace=<workspaceId>
-|
-*/
+// Accounts
 router
   .route("/")
   .get(getAccounts)
@@ -45,29 +33,13 @@ router
     createAccount
   );
 
-/*
-|--------------------------------------------------------------------------
-| Summary
-|--------------------------------------------------------------------------
-|
-| GET /accounts/summary?workspace=<workspaceId>
-|
-*/
+// Total Balance
 router.get(
   "/summary",
   getTotalBalance
 );
 
-/*
-|--------------------------------------------------------------------------
-| Single Account
-|--------------------------------------------------------------------------
-|
-| GET    /accounts/:id
-| PATCH  /accounts/:id
-| DELETE /accounts/:id
-|
-*/
+// Account by ID
 router
   .route("/:id")
   .get(getAccountById)
@@ -77,27 +49,13 @@ router
   )
   .delete(deleteAccount);
 
-/*
-|--------------------------------------------------------------------------
-| Archive
-|--------------------------------------------------------------------------
-|
-| PATCH /accounts/:id/archive
-|
-*/
+// Archive Account
 router.patch(
   "/:id/archive",
   archiveAccount
 );
 
-/*
-|--------------------------------------------------------------------------
-| Restore
-|--------------------------------------------------------------------------
-|
-| PATCH /accounts/:id/restore
-|
-*/
+// Restore Account
 router.patch(
   "/:id/restore",
   restoreAccount

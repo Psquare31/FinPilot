@@ -4,11 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
-/**
- * --------------------------------------------------------------------------
- * Create Account
- * --------------------------------------------------------------------------
- */
+// Create Account
 export const createAccount = asyncHandler(async (req, res) => {
   const account = await accountService.createAccount(req.body);
 
@@ -21,12 +17,7 @@ export const createAccount = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Get Workspace Accounts
- * GET /accounts?workspace=<workspaceId>
- * --------------------------------------------------------------------------
- */
+// Get Accounts
 export const getAccounts = asyncHandler(async (req, res) => {
   const { workspace } = req.query;
 
@@ -48,11 +39,7 @@ export const getAccounts = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Get Account By ID
- * --------------------------------------------------------------------------
- */
+// Get Account by ID
 export const getAccountById = asyncHandler(async (req, res) => {
   const account = await accountService.getAccountById(req.params.id);
 
@@ -65,11 +52,7 @@ export const getAccountById = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Update Account
- * --------------------------------------------------------------------------
- */
+// Update Account
 export const updateAccount = asyncHandler(async (req, res) => {
   const account = await accountService.updateAccount(
     req.params.id,
@@ -85,11 +68,7 @@ export const updateAccount = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Archive Account
- * --------------------------------------------------------------------------
- */
+// Archive Account
 export const archiveAccount = asyncHandler(async (req, res) => {
   const account = await accountService.archiveAccount(
     req.params.id
@@ -104,11 +83,7 @@ export const archiveAccount = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Restore Account
- * --------------------------------------------------------------------------
- */
+// Restore Account
 export const restoreAccount = asyncHandler(async (req, res) => {
   const account = await accountService.restoreAccount(
     req.params.id
@@ -123,11 +98,7 @@ export const restoreAccount = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Delete Account
- * --------------------------------------------------------------------------
- */
+// Delete Account
 export const deleteAccount = asyncHandler(async (req, res) => {
   await accountService.permanentlyDeleteAccount(req.params.id);
 
@@ -140,12 +111,7 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Get Total Workspace Balance
- * GET /accounts/summary?workspace=<workspaceId>
- * --------------------------------------------------------------------------
- */
+// Get Total Balance
 export const getTotalBalance = asyncHandler(async (req, res) => {
   const { workspace } = req.query;
 
@@ -166,12 +132,7 @@ export const getTotalBalance = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * --------------------------------------------------------------------------
- * Adjust Account Balance
- * (Internal/Admin endpoint for future use)
- * --------------------------------------------------------------------------
- */
+// Adjust Account Balance
 export const adjustBalance = asyncHandler(async (req, res) => {
   const { amount } = req.body;
 

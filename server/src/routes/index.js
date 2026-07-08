@@ -1,33 +1,65 @@
 import { Router } from "express";
-import mongoose from "mongoose";
 
-import ApiResponse from "../utils/ApiResponse.js";
+import healthRoutes from "./health.routes.js";
+import authRoutes from "./auth.routes.js";
+import workspaceRoutes from "./workspace.routes.js";
+import accountRoutes from "./account.routes.js";
+import categoryRoutes from "./category.routes.js";
+import transactionRoutes from "./transaction.routes.js";
+import budgetRoutes from "./budget.routes.js";
+import goalRoutes from "./goal.routes.js";
+import debtRoutes from "./debt.routes.js";
+import investmentRoutes from "./investment.routes.js";
+import investmentTransactionRoutes from "./investmentTransaction.routes.js";
+import dashboardRoutes from "./dashboard.routes.js";
+import reportRoutes from "./report.routes.js";
+import notificationRoutes from "./notification.routes.js";
+import subscriptionRoutes from "./subscription.routes.js";
+import auditLogRoutes from "./auditLog.routes.js";
+import aiInteractionRoutes from "./aiInteraction.routes.js";
 
 const router = Router();
 
-// ======================================================
-// Health check — used by uptime monitoring and load balancers.
-// ======================================================
+// System
+router.use("/", healthRoutes);
 
-router.get("/health", (req, res) => {
-    const dbState = mongoose.connection.readyState; // 1 = connected
+// Authentication
+router.use("/auth", authRoutes);
 
-    res.status(200).json(
-        new ApiResponse(
-            200,
-            {
-                uptime: process.uptime(),
-                database: dbState === 1 ? "connected" : "disconnected",
-                timestamp: new Date().toISOString(),
-            },
-            "FinPilot API is healthy."
-        )
-    );
-});
+// Workspace
+router.use("/workspaces", workspaceRoutes);
 
-// ======================================================
-// Feature module routers get mounted here as they are built,
-// e.g. router.use("/auth", authRoutes);
-// ======================================================
+// Finance
+router.use("/accounts", accountRoutes);
+router.use("/categories", categoryRoutes);
+router.use("/transactions", transactionRoutes);
+router.use("/budgets", budgetRoutes);
+router.use("/goals", goalRoutes);
+router.use("/debts", debtRoutes);
+
+// Investments
+router.use("/investments", investmentRoutes);
+router.use(
+  "/investment-transactions",
+  investmentTransactionRoutes
+);
+
+// Dashboard
+router.use("/dashboard", dashboardRoutes);
+
+// Reports
+router.use("/reports", reportRoutes);
+
+// Notifications
+router.use("/notifications", notificationRoutes);
+
+// Subscription
+router.use("/subscriptions", subscriptionRoutes);
+
+// Audit Logs
+router.use("/audit-logs", auditLogRoutes);
+
+// AI
+router.use("/ai", aiInteractionRoutes);
 
 export default router;
