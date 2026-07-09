@@ -5,9 +5,20 @@ import Goal from "../models/Goal.js";
 import Debt from "../models/Debt.js";
 import Investment from "../models/Investment.js";
 
+import cacheService from "./cache.service.js";
+import { REDIS_KEYS } from "../config/redis/redisKeys.js";
+
 class DashboardService {
-  // Get Dashboard Overview
+  // Get complete dashboard with Redis caching
   async getDashboard(workspace) {
+    const cacheKey = REDIS_KEYS.DASHBOARD(workspace);
+
+    const cachedDashboard = await cacheService.get(cacheKey);
+
+    if (cachedDashboard) {
+      return cachedDashboard;
+    }
+
     const [
       accountSummary,
       transactionSummary,
@@ -26,7 +37,7 @@ class DashboardService {
       this.getRecentTransactions(workspace),
     ]);
 
-    return {
+    const dashboard = {
       accounts: accountSummary,
       transactions: transactionSummary,
       budgets: budgetSummary,
@@ -35,9 +46,17 @@ class DashboardService {
       investments: investmentSummary,
       recentTransactions,
     };
+
+    await cacheService.set(
+      cacheKey,
+      dashboard,
+      300 // Cache for 5 minutes
+    );
+
+    return dashboard;
   }
 
-  // Get Account Summary
+  // Get account summary
   async getAccountSummary(workspace) {
     const accounts = await Account.find({
       workspace,
@@ -57,7 +76,7 @@ class DashboardService {
     };
   }
 
-  // Get Transaction Summary
+  // Get transaction summary
   async getTransactionSummary(workspace) {
     const summary = await Transaction.aggregate([
       {
@@ -89,7 +108,7 @@ class DashboardService {
     };
   }
 
-  // Get Budget Summary
+  // Get budget summary
   async getBudgetSummary(workspace) {
     const budgets = await Budget.find({
       workspace,
@@ -103,7 +122,7 @@ class DashboardService {
     };
   }
 
-  // Get Goal Summary
+  // Get goal summary
   async getGoalSummary(workspace) {
     const goals = await Goal.find({
       workspace,
@@ -122,7 +141,7 @@ class DashboardService {
     };
   }
 
-  // Get Debt Summary
+  // Get debt summary
   async getDebtSummary(workspace) {
     const debts = await Debt.find({
       workspace,
@@ -136,7 +155,7 @@ class DashboardService {
     };
   }
 
-  // Get Investment Summary
+  // Get investment summary
   async getInvestmentSummary(workspace) {
     const investments = await Investment.find({
       workspace,
@@ -146,9 +165,7 @@ class DashboardService {
 
     const totalCurrentValue = investments.reduce(
       (sum, investment) =>
-        sum +
-        investment.totalUnits *
-          investment.currentPrice,
+        sum + investment.totalUnits * investment.currentPrice,
       0
     );
 
@@ -159,7 +176,7 @@ class DashboardService {
     };
   }
 
-  // Get Recent Transactions
+  // Get recent transactions
   async getRecentTransactions(workspace, limit = 10) {
     return Transaction.find({
       workspace,
@@ -172,6 +189,13 @@ class DashboardService {
       .populate("account", "name")
       .populate("category", "name color icon")
       .lean();
+  }
+
+  // Clear dashboard cache
+  async clearDashboardCache(workspace) {
+    return cacheService.del(
+      REDIS_KEYS.DASHBOARD(workspace)
+    );
   }
 }
 

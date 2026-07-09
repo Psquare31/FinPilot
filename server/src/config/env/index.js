@@ -31,6 +31,16 @@ const envSchema = z.object({
     JWT_ACCESS_EXPIRES_IN: z.string().trim().default("15m"),
 
     JWT_REFRESH_EXPIRES_IN: z.string().trim().default("7d"),
+
+    UPSTASH_REDIS_REST_URL: z
+        .string({ required_error: "UPSTASH_REDIS_REST_URL is required." })
+        .trim()
+        .url("UPSTASH_REDIS_REST_URL must be a valid URL."),
+
+    UPSTASH_REDIS_REST_TOKEN: z
+        .string({ required_error: "UPSTASH_REDIS_REST_TOKEN is required." })
+        .trim()
+        .min(1, "UPSTASH_REDIS_REST_TOKEN cannot be empty."),
 });
 
 const parsed = envSchema.safeParse(process.env);

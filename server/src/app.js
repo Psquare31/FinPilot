@@ -32,6 +32,9 @@ app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use(cookieParser());
 app.use(compression());
 
+// Rate limiting middleware
+app.use("/api", apiLimiter);
+
 // Strip MongoDB operator keys ($, .) from request bodies to guard
 // against NoSQL injection. req.query is read-only under Express 5,
 // so we only sanitize the mutable body here.

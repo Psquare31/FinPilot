@@ -84,14 +84,21 @@ class BaseService {
   }
 
   async updateById(id, payload, options = {}) {
-    const document = await this.model.findByIdAndUpdate(id, payload, {
-      new: true,
-      runValidators: true,
-      ...options,
-    });
+    const document = await this.model.findByIdAndUpdate(
+      id,
+      payload,
+      {
+        new: true,
+        runValidators: true,
+        ...options,
+      }
+    );
 
     if (!document) {
-      throw new ApiError(404, `${this.model.modelName} not found.`);
+      throw new ApiError(
+        404,
+        `${this.model.modelName} not found.`
+      );
     }
 
     return document;
@@ -105,11 +112,15 @@ class BaseService {
     });
   }
 
-  async deleteById(id) {
-    const document = await this.model.findByIdAndDelete(id);
+  async deleteById(id, options = {}) {
+    const document =
+      await this.model.findByIdAndDelete(id, options);
 
     if (!document) {
-      throw new ApiError(404, `${this.model.modelName} not found.`);
+      throw new ApiError(
+        404,
+        `${this.model.modelName} not found.`
+      );
     }
 
     return document;

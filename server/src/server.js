@@ -2,12 +2,14 @@ import app from "./app.js";
 import env from "./config/env/index.js";
 import logger from "./config/logger/logger.js";
 import connectDB, { disconnectDB } from "./config/database/connectDB.js";
+import { initializeJobs } from "./jobs/index.js";
 
 let server;
 
 const startServer = async () => {
     try {
         await connectDB();
+        await initializeJobs();
 
         server = app.listen(env.PORT, () => {
             logger.info(

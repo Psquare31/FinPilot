@@ -1,5 +1,6 @@
 import BaseService from "./base.service.js";
 import ApiError from "../utils/ApiError.js";
+import withTransaction from "../utils/withTransaction.js";
 
 import Transaction from "../models/Transaction.js";
 import Account from "../models/Account.js";
@@ -12,45 +13,60 @@ class TransactionService extends BaseService {
 
   // Create Transaction
   async createTransaction(payload) {
-
-    const account = await Account.findOne({
+    return withTransaction(async (session) => {
+      const account = await Account.findOne({
         _id: payload.account,
         workspace: payload.workspace,
         isArchived: false,
         isDeleted: false,
-    });
+      }).session(session);
 
+      if (!account) {
+        throw new ApiError(404, "Account not found.");
+      }
 
-    if (!account) {
-      throw new ApiError(404, "Account not found.");
-    }
-
-    const category = await Category.findOne({
+      const category = await Category.findOne({
         _id: payload.category,
         workspace: payload.workspace,
         isArchived: false,
         isDeleted: false,
+      }).session(session);
+
+      if (!category) {
+        throw new ApiError(404, "Category not found.");
+      }
+
+      switch (payload.type) {
+        case "income":
+          account.balance += payload.amount;
+          break;
+
+        case "expense":
+          if (account.balance < payload.amount) {
+            throw new ApiError(
+              400,
+              "Insufficient account balance."
+            );
+          }
+
+          account.balance -= payload.amount;
+          break;
+
+        default:
+          throw new ApiError(
+            400,
+            "Invalid transaction type."
+          );
+      }
+
+      const transaction = await this.create(payload, {
+        session,
+      });
+
+      await account.save({ session });
+
+      return transaction;
     });
-
-    if (!category) {
-      throw new ApiError(404, "Category not found.");
-    }
-
-    const transaction = await this.create(payload);
-
-    if (payload.type === "income") {
-      account.balance += payload.amount;
-    } else if (payload.type === "expense") {
-        if (account.balance < payload.amount) {
-            throw new ApiError( 400, "Insufficient balance.");
-        } else {
-            account.balance -= payload.amount;
-        }
-    }
-
-    await account.save();
-
-    return transaction;
   }
 
   // Get Transactions
@@ -123,134 +139,216 @@ class TransactionService extends BaseService {
 
   // Update Transaction
   async updateTransaction(id, payload) {
-    const transaction = await Transaction.findById(id);
+    return withTransaction(async (session) => {
+      const transaction = await Transaction.findById(id).session(session);
 
-    if (!transaction) {
-      throw new ApiError(404, "Transaction not found.");
-    }
+      if (!transaction) {
+        throw new ApiError(404, "Transaction not found.");
+      }
 
-    const account = await Account.findById(transaction.account);
+      const oldAccount = await Account.findById(
+        transaction.account
+      ).session(session);
 
-    if (!account) {
-      throw new ApiError(404, "Account not found.");
-    }
+      if (!oldAccount) {
+        throw new ApiError(404, "Account not found.");
+      }
 
-    // Reverse previous balance
-    if (transaction.type === "income") {
-      account.balance -= transaction.amount;
-    } else if (transaction.type === "expense") {
-      account.balance += transaction.amount;
-    }
+      const newAccountId =
+        payload.account || transaction.account;
 
-    const updatedType = payload.type ?? transaction.type;
-    const updatedAmount = payload.amount ?? transaction.amount;
+      const newAccount =
+        String(newAccountId) === String(oldAccount._id)
+          ? oldAccount
+          : await Account.findById(newAccountId).session(session);
 
-    // Apply new balance
-    if (updatedType === "income") {
-      account.balance += updatedAmount;
-    } else if (updatedType === "expense") {
-      account.balance -= updatedAmount;
-    }
+      if (!newAccount) {
+        throw new ApiError(404, "Destination account not found.");
+      }
 
-    await account.save();
+      // Reverse old transaction
+      if (transaction.type === "income") {
+        oldAccount.balance -= transaction.amount;
+      } else {
+        oldAccount.balance += transaction.amount;
+      }
 
-    return this.updateById(id, payload);
+      const updatedType =
+        payload.type ?? transaction.type;
+
+      const updatedAmount =
+        payload.amount ?? transaction.amount;
+
+      // Apply new transaction
+      if (updatedType === "income") {
+        newAccount.balance += updatedAmount;
+      } else {
+        if (newAccount.balance < updatedAmount) {
+          throw new ApiError(
+            400,
+            "Insufficient account balance."
+          );
+        }
+
+        newAccount.balance -= updatedAmount;
+      }
+
+      await Promise.all([
+        oldAccount.save({ session }),
+        String(oldAccount._id) === String(newAccount._id)
+          ? Promise.resolve()
+          : newAccount.save({ session }),
+      ]);
+
+      return this.updateById(
+        id,
+        payload,
+        { session }
+      );
+    });
   }
 
   // Delete Transaction
   async deleteTransaction(id) {
-    const transaction = await Transaction.findById(id);
+    return withTransaction(async (session) => {
+      const transaction = await Transaction.findById(id).session(session);
 
-    if (!transaction) {
-      throw new ApiError(404, "Transaction not found.");
-    }
+      if (!transaction) {
+        throw new ApiError(404, "Transaction not found.");
+      }
 
-    const account = await Account.findById(transaction.account);
+      const account = await Account.findById(
+        transaction.account
+      ).session(session);
 
-    if (!account) {
-      throw new ApiError(404, "Account not found.");
-    }
+      if (!account) {
+        throw new ApiError(404, "Account not found.");
+      }
 
-    if (transaction.type === "income") {
-      account.balance -= transaction.amount;
-    } else if (transaction.type === "expense") {
-      account.balance += transaction.amount;
-    }
+      switch (transaction.type) {
+        case "income":
+          account.balance -= transaction.amount;
+          break;
 
-    await account.save();
+        case "expense":
+          account.balance += transaction.amount;
+          break;
 
-    return this.deleteById(id);
+        default:
+          throw new ApiError(
+            400,
+            "Invalid transaction type."
+          );
+      }
+
+      await account.save({ session });
+
+      await this.deleteById(id, {
+        session,
+      });
+
+      return true;
+    });
   }
-
-    // Transfer Between Accounts
+  
+  // Transfer Between Accounts
   async transferBetweenAccounts(payload) {
-    const {
-      fromAccount,
-      toAccount,
-      amount,
-      workspace,
-      category,
-      transactionDate,
-      description,
-    } = payload;
+    return withTransaction(async (session) => {
+      const {
+        fromAccount,
+        toAccount,
+        amount,
+        workspace,
+        category,
+        transactionDate,
+        description,
+      } = payload;
 
-    if (fromAccount === toAccount) {
-      throw new ApiError(
-        400,
-        "Source and destination accounts cannot be the same."
-      );
-    }
+      if (String(fromAccount) === String(toAccount)) {
+        throw new ApiError(
+          400,
+          "Source and destination accounts cannot be the same."
+        );
+      }
 
-    const source = await Account.findById(fromAccount);
-    const destination = await Account.findById(toAccount);
+      const [source, destination] =
+        await Promise.all([
+          Account.findOne({
+            _id: fromAccount,
+            workspace,
+            isArchived: false,
+            isDeleted: false,
+          }).session(session),
 
-    if (!source || !destination) {
-      throw new ApiError(404, "Account not found.");
-    }
+          Account.findOne({
+            _id: toAccount,
+            workspace,
+            isArchived: false,
+            isDeleted: false,
+          }).session(session),
+        ]);
 
-    if (source.balance < amount) {
-      throw new ApiError(
-        400,
-        "Insufficient account balance."
-      );
-    }
+      if (!source || !destination) {
+        throw new ApiError(
+          404,
+          "One or more accounts not found."
+        );
+      }
 
-    source.balance -= amount;
-    destination.balance += amount;
+      if (source.balance < amount) {
+        throw new ApiError(
+          400,
+          "Insufficient account balance."
+        );
+      }
 
-    await Promise.all([
-      source.save(),
-      destination.save(),
-    ]);
+      source.balance -= amount;
+      destination.balance += amount;
 
-    const [expenseTransaction, incomeTransaction] =
-      await Transaction.create([
-        {
-          workspace,
-          account: fromAccount,
-          category,
-          amount,
-          type: "expense",
-          description,
-          transactionDate,
-          isTransfer: true,
-        },
-        {
-          workspace,
-          account: toAccount,
-          category,
-          amount,
-          type: "income",
-          description,
-          transactionDate,
-          isTransfer: true,
-        },
+      await Promise.all([
+        source.save({ session }),
+        destination.save({ session }),
       ]);
 
-    return {
-      expenseTransaction,
-      incomeTransaction,
-    };
+      const [expenseTransaction] =
+        await Transaction.create(
+          [
+            {
+              workspace,
+              account: fromAccount,
+              category,
+              amount,
+              type: "expense",
+              description,
+              transactionDate,
+              isTransfer: true,
+            },
+          ],
+          { session }
+        );
+
+      const [incomeTransaction] =
+        await Transaction.create(
+          [
+            {
+              workspace,
+              account: toAccount,
+              category,
+              amount,
+              type: "income",
+              description,
+              transactionDate,
+              isTransfer: true,
+            },
+          ],
+          { session }
+        );
+
+      return {
+        expenseTransaction,
+        incomeTransaction,
+      };
+    });
   }
 
   // Bulk Create Transactions
@@ -653,4 +751,4 @@ class TransactionService extends BaseService {
   }
 }
 
-export default new TransactionService();
+export default new TransactionService(); 
