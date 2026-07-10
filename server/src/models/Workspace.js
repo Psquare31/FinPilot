@@ -151,16 +151,14 @@ workspaceSchema.virtual("displayName").get(function () {
 // Middleware
 // ===========================
 
-workspaceSchema.pre("validate", async function (next) {
-  if (!this.isModified("name")) return next();
+workspaceSchema.pre("validate", async function () {
+  if (!this.isModified("name")) return;
 
   this.slug = await generateSlug(
     "Workspace",
     this.name,
     this._id
   );
-
-  next();
 });
 
 // ===========================

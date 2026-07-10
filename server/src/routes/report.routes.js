@@ -12,10 +12,10 @@ import {
 } from "../controllers/report.controller.js";
 
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import validate from "../middlewares/validate.middleware.js";
+import validate from "../middlewares/validate.js";
 
 import {
-  createReportSchema,
+  generateReportSchema,
 } from "../validators/report.validator.js";
 
 const router = Router();
@@ -25,7 +25,7 @@ router.use(requireAuth);
 // Reports
 router.post(
   "/",
-  validate(createReportSchema),
+  validate(generateReportSchema),
   createReport
 );
 

@@ -14,14 +14,14 @@ import {
   transferOwnership,
 } from "../controllers/workspace.controller.js";
 
-import validate from "../middlewares/validate.middleware.js";
+import validate from "../middlewares/validate.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 
 import {
   createWorkspaceSchema,
   updateWorkspaceSchema,
   inviteMemberSchema,
-  updateMemberRoleSchema,
+  updateMemberSchema,
   transferOwnershipSchema,
 } from "../validators/workspace.validator.js";
 
@@ -64,7 +64,7 @@ router.patch(
 
 router.patch(
   "/:id/members/:memberId/role",
-  validate(updateMemberRoleSchema),
+  validate(updateMemberSchema),
   updateMemberRole
 );
 

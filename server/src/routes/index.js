@@ -15,8 +15,8 @@ import dashboardRoutes from "./dashboard.routes.js";
 import reportRoutes from "./report.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import subscriptionRoutes from "./subscription.routes.js";
-import auditLogRoutes from "./auditLog.routes.js";
-import aiInteractionRoutes from "./aiInteraction.routes.js";
+import auditLogRoutes from "./audit.routes.js";
+import aiInteractionRoutes from "./ai.routes.js";
 
 const router = Router();
 

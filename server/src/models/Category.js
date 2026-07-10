@@ -124,16 +124,14 @@ categorySchema.virtual("displayName").get(function () {
 // Middleware
 // ===================================
 
-categorySchema.pre("validate", async function (next) {
-  if (!this.isModified("name")) return next();
+categorySchema.pre("validate", async function () {
+  if (!this.isModified("name")) return;
 
   this.slug = await generateSlug(
     "Category",
     this.name,
     this._id
   );
-
-  next();
 });
 
 // ===================================

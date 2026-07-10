@@ -198,3 +198,16 @@ export const getCategoriesSchema = z.object({
             .optional(),
     }),
 });
+// ======================================================
+// Clone Default Categories
+// ======================================================
+
+export const cloneDefaultCategoriesSchema = z.object({
+    body: z.object({
+        workspace: objectId,
+    }),
+
+    params: z.object({}),
+
+    query: z.object({}),
+});

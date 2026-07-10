@@ -10,16 +10,16 @@ import {
   getFeatureUsage,
   recordFeedback,
   getAvailableModels,
-  generateAIResponse,
-} from "../controllers/aiInteraction.controller.js";
+  generateResponse,
+} from "../controllers/ai.controller.js";
 
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import validate from "../middlewares/validate.middleware.js";
+import validate from "../middlewares/validate.js";
 
 import {
   createAIInteractionSchema,
   feedbackSchema,
-} from "../validators/aiInteraction.validator.js";
+} from "../validators/ai.validator.js";
 
 const router = Router();
 
@@ -55,6 +55,6 @@ router.patch(
 
 router.delete("/:id", deleteInteraction);
 
-router.post("/generate-response", generateAIResponse);
+router.post("/generate-response", generateResponse);
 
 export default router;

@@ -13,6 +13,7 @@ import swaggerSpec from "./config/swagger/swagger.js";
 import routes from "./routes/index.js";
 import notFound from "./middlewares/notFound.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
 
 const app = express();
 

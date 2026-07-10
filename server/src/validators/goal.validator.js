@@ -249,3 +249,20 @@ export const getGoalsSchema = z.object({
                 .default("createdAt"),
         }),
 });
+// ======================================================
+// Contribution (add / withdraw)
+// ======================================================
+
+export const contributionSchema = z.object({
+    body: z.object({
+        amount: z.coerce
+            .number({ invalid_type_error: "Amount must be a number." })
+            .positive("Amount must be greater than zero."),
+    }),
+
+    params: z.object({
+        id: objectId,
+    }),
+
+    query: z.object({}),
+});

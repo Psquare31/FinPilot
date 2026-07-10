@@ -14,7 +14,7 @@ import {
 } from "../controllers/subscription.controller.js";
 
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import validate from "../middlewares/validate.middleware.js";
+import validate from "../middlewares/validate.js";
 
 import {
   createSubscriptionSchema,

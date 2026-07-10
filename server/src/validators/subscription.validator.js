@@ -432,3 +432,40 @@ export const getSubscriptionsSchema =
             })
             .superRefine(dateRangeRefinement),
     });
+// ======================================================
+// Change Plan
+// ======================================================
+
+export const changePlanSchema = z.object({
+    body: z.object({
+        plan: z
+            .string({ required_error: "Plan is required." })
+            .trim()
+            .min(1, "Plan is required."),
+    }),
+
+    params: z.object({
+        id: objectId,
+    }),
+
+    query: z.object({}),
+});
+
+// ======================================================
+// Renew Subscription
+// ======================================================
+
+export const renewSubscriptionSchema = z.object({
+    body: z.object({
+        endDate: z.coerce.date({
+            required_error: "Subscription end date is required.",
+            invalid_type_error: "Subscription end date must be a valid date.",
+        }),
+    }),
+
+    params: z.object({
+        id: objectId,
+    }),
+
+    query: z.object({}),
+});

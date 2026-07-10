@@ -268,3 +268,20 @@ export const getDebtsSchema = z.object({
                 .default("createdAt"),
         }),
 });
+// ======================================================
+// Record Payment
+// ======================================================
+
+export const paymentSchema = z.object({
+    body: z.object({
+        amount: z.coerce
+            .number({ invalid_type_error: "Amount must be a number." })
+            .positive("Payment amount must be greater than zero."),
+    }),
+
+    params: z.object({
+        id: objectId,
+    }),
+
+    query: z.object({}),
+});

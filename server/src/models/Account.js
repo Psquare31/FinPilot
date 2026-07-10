@@ -5,6 +5,7 @@ import {
   ACCOUNT_STATUS,
   USER_CURRENCIES,
   ACCOUNT_COLORS,
+  ACCOUNT_ICONS,
 } from "../constants/index.js";
 
 import generateSlug from "../utils/generateSlug.js";
@@ -157,16 +158,14 @@ accountSchema.virtual("maskedAccountNumber").get(function () {
 // Middleware
 // ===================================
 
-accountSchema.pre("validate", async function (next) {
-  if (!this.isModified("name")) return next();
+accountSchema.pre("validate", async function () {
+  if (!this.isModified("name")) return;
 
   this.slug = await generateSlug(
     "Account",
     this.name,
     this._id
   );
-
-  next();
 });
 
 // ===================================

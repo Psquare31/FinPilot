@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { RECURRENCE_FREQUENCIES } from "../../constants/enums.js";
+import { RECURRENCE_FREQUENCIES } from "../../constants/transactionTypes.js";
 
 const { Schema } = mongoose;
 

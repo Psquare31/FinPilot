@@ -16,7 +16,7 @@ import {
 } from "../controllers/investment.controller.js";
 
 import { requireAuth } from "../middlewares/auth.middleware.js";
-import validate from "../middlewares/validate.middleware.js";
+import validate from "../middlewares/validate.js";
 
 import {
   createInvestmentSchema,

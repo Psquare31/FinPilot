@@ -208,3 +208,46 @@ export const getInvestmentsSchema = z.object({
         })
         .superRefine(dateRangeRefinement),
 }); 
+// ======================================================
+// Buy / Sell Investment (trade)
+// ======================================================
+
+export const investmentTradeSchema = z.object({
+    body: z.object({
+        units: z.coerce
+            .number({ invalid_type_error: "Units must be a number." })
+            .positive("Units must be greater than zero."),
+
+        price: z.coerce
+            .number({ invalid_type_error: "Price must be a number." })
+            .positive("Price must be greater than zero."),
+
+        transactionDate: z.coerce.date().optional(),
+
+        notes: z.string().trim().max(500).optional(),
+    }),
+
+    params: z.object({
+        id: objectId,
+    }),
+
+    query: z.object({}),
+});
+
+// ======================================================
+// Update Current Price
+// ======================================================
+
+export const updateCurrentPriceSchema = z.object({
+    body: z.object({
+        currentPrice: z.coerce
+            .number({ invalid_type_error: "Current price must be a number." })
+            .nonnegative("Current price cannot be negative."),
+    }),
+
+    params: z.object({
+        id: objectId,
+    }),
+
+    query: z.object({}),
+});
