@@ -1,27 +1,20 @@
 import { Router } from "express";
 
-import {
-  createWorkspace,
-  getUserWorkspaces,
-  getWorkspaceById,
-  updateWorkspace,
-  deleteWorkspace,
-  inviteMember,
-  acceptInvitation,
-  removeMember,
-  updateMemberRole,
-  getMembers,
-  transferOwnership,
-} from "../controllers/workspace.controller.js";
+import workspaceController from "../controllers/workspace.controller.js";
 
 import validate from "../middlewares/validate.js";
-import { requireAuth } from "../middlewares/auth.middleware.js";
+import requireAuth from "../middlewares/authenticate.js";
 
 import {
   createWorkspaceSchema,
+  getWorkspaceSchema,
   updateWorkspaceSchema,
+  deleteWorkspaceSchema,
   inviteMemberSchema,
+  acceptInvitationSchema,
   updateMemberSchema,
+  removeMemberSchema,
+  getMembersSchema,
   transferOwnershipSchema,
 } from "../validators/workspace.validator.js";
 
@@ -29,54 +22,77 @@ const router = Router();
 
 router.use(requireAuth);
 
+// ======================================================
 // Workspace
+// ======================================================
+
 router.post(
   "/",
   validate(createWorkspaceSchema),
-  createWorkspace
+  workspaceController.createWorkspace
 );
 
-router.get("/", getUserWorkspaces);
+router.get(
+  "/",
+  workspaceController.getUserWorkspaces
+);
 
-router.get("/:id", getWorkspaceById);
+router.get(
+  "/:workspaceId",
+  validate(getWorkspaceSchema),
+  workspaceController.getWorkspaceById
+);
 
 router.patch(
-  "/:id",
+  "/:workspaceId",
   validate(updateWorkspaceSchema),
-  updateWorkspace
-);
-
-router.delete("/:id", deleteWorkspace);
-
-// Members
-router.get("/:id/members", getMembers);
-
-router.post(
-  "/:id/members/invite",
-  validate(inviteMemberSchema),
-  inviteMember
-);
-
-router.patch(
-  "/:id/members/accept",
-  acceptInvitation
-);
-
-router.patch(
-  "/:id/members/:memberId/role",
-  validate(updateMemberSchema),
-  updateMemberRole
+  workspaceController.updateWorkspace
 );
 
 router.delete(
-  "/:id/members/:memberId",
-  removeMember
+  "/:workspaceId",
+  validate(deleteWorkspaceSchema),
+  workspaceController.deleteWorkspace
+);
+
+// ======================================================
+// Members
+// ======================================================
+
+router.get(
+  "/:workspaceId/members",
+  validate(getMembersSchema),
+  workspaceController.getMembers
+);
+
+router.post(
+  "/:workspaceId/members/invite",
+  validate(inviteMemberSchema),
+  workspaceController.inviteMember
 );
 
 router.patch(
-  "/:id/transfer-ownership",
+  "/:workspaceId/members/accept",
+  validate(acceptInvitationSchema),
+  workspaceController.acceptInvitation
+);
+
+router.patch(
+  "/:workspaceId/members/:memberId/role",
+  validate(updateMemberSchema),
+  workspaceController.updateMemberRole
+);
+
+router.delete(
+  "/:workspaceId/members/:memberId",
+  validate(removeMemberSchema),
+  workspaceController.removeMember
+);
+
+router.patch(
+  "/:workspaceId/transfer-ownership",
   validate(transferOwnershipSchema),
-  transferOwnership
+  workspaceController.transferOwnership
 );
 
 export default router;

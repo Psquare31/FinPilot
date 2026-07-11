@@ -1,195 +1,211 @@
 import User from "../models/User.js";
-import RefreshToken from "../models/RefreshToken.js";
 
 import ApiError from "../utils/ApiError.js";
+
 import {
-  signAccessToken,
-  signRefreshToken,
-  verifyRefreshToken,
-  getTokenExpiry,
-} from "../utils/token.js";
+    getPrimaryEmail,
+    getAuthProvider,
+    getProfileImage,
+} from "../utils/auth/auth.utils.js";
 
-// =======================================================
-// Issue a fresh access/refresh pair and persist the
-// refresh token so it can be validated and revoked later.
-// =======================================================
-const issueTokens = async (user, context = {}) => {
-  const accessToken = signAccessToken({
-    sub: user._id.toString(),
-    email: user.email,
-  });
+class AuthService {
+    // ======================================================
+    // Synchronize Clerk user with MongoDB.
+    // Creates a new user on first login or updates the
+    // existing profile on subsequent logins.
+    // ======================================================
+    async syncUser(clerkUser) {
+        const email = getPrimaryEmail(clerkUser);
 
-  const refreshToken = signRefreshToken({
-    sub: user._id.toString(),
-    type: "refresh",
-  });
+        if (!email) {
+            throw new ApiError(
+                400,
+                "Unable to determine user's primary email.",
+                [],
+                "EMAIL_NOT_FOUND"
+            );
+        }
 
-  await RefreshToken.create({
-    user: user._id,
-    token: refreshToken,
-    expiresAt: getTokenExpiry(refreshToken),
-    deviceName: context.deviceName || "Unknown Device",
-    ipAddress: context.ipAddress || "",
-    userAgent: context.userAgent || "",
-  });
+        let user = await User.findOne({
+            clerkId: clerkUser.id,
+        });
 
-  return { accessToken, refreshToken };
-};
+        if (!user) {
+            user = await User.findOne({
+                email,
+            });
+        }
 
-// =======================================================
-// Register a new user and log them in.
-// =======================================================
-const register = async (data, context = {}) => {
-  const existing = await User.findOne({ email: data.email });
+        if (!user) {
+            user = await User.create({
+                clerkId: clerkUser.id,
 
-  if (existing) {
-    throw new ApiError(
-      409,
-      "An account with this email already exists.",
-      [],
-      "EMAIL_TAKEN"
-    );
-  }
+                authProvider: getAuthProvider(clerkUser),
 
-  const user = await User.create({
-    firstName: data.firstName,
-    lastName: data.lastName,
-    email: data.email,
-    password: data.password,
-  });
+                firstName: clerkUser.firstName || "",
 
-  const tokens = await issueTokens(user, context);
+                lastName: clerkUser.lastName || "",
 
-  return { user, ...tokens };
-};
+                email,
 
-// =======================================================
-// Authenticate with email + password.
-// =======================================================
-const login = async ({ email, password }, context = {}) => {
-  const user = await User.findByEmail(email);
+                profileImage: getProfileImage(clerkUser),
 
-  const invalidCredentials = new ApiError(
-    401,
-    "Invalid email or password.",
-    [],
-    "INVALID_CREDENTIALS"
-  );
+                emailVerified:
+                    clerkUser.emailAddresses.find(
+                        (item) =>
+                            item.id === clerkUser.primaryEmailAddressId
+                    )?.verification?.status === "verified",
 
-  if (!user) {
-    throw invalidCredentials;
-  }
+                lastLoginAt: new Date(),
+            });
 
-  if (user.isLocked) {
-    throw new ApiError(
-      423,
-      "Account temporarily locked due to too many failed attempts. Try again later.",
-      [],
-      "ACCOUNT_LOCKED"
-    );
-  }
+            return user;
+        }
 
-  const matches = await user.comparePassword(password);
+        user.clerkId = clerkUser.id;
 
-  if (!matches) {
-    await user.incrementLoginAttempts();
-    throw invalidCredentials;
-  }
+        user.firstName = clerkUser.firstName || user.firstName;
 
-  if (user.status !== "active") {
-    throw new ApiError(403, "Account is not active.", [], "ACCOUNT_INACTIVE");
-  }
+        user.lastName = clerkUser.lastName || user.lastName;
 
-  await user.resetLoginAttempts();
+        user.email = email;
 
-  const tokens = await issueTokens(user, context);
+        user.profileImage = getProfileImage(clerkUser);
 
-  return { user, ...tokens };
-};
+        user.emailVerified =
+            clerkUser.emailAddresses.find(
+                (item) => item.id === clerkUser.primaryEmailAddressId
+            )?.verification?.status === "verified";
 
-// =======================================================
-// Rotate a refresh token: validate the presented token,
-// revoke it, and issue a new pair.
-// =======================================================
-const refresh = async (token, context = {}) => {
-  const invalidToken = new ApiError(
-    401,
-    "Invalid or expired refresh token.",
-    [],
-    "INVALID_REFRESH_TOKEN"
-  );
+        user.authProvider = getAuthProvider(clerkUser);
 
-  if (!token) {
-    throw invalidToken;
-  }
+        user.lastLoginAt = new Date();
 
-  let payload;
+        await user.save();
 
-  try {
-    payload = verifyRefreshToken(token);
-  } catch {
-    throw invalidToken;
-  }
-
-  const stored = await RefreshToken.findValidToken(token);
-
-  if (!stored) {
-    throw invalidToken;
-  }
-
-  const user = await User.findById(payload.sub);
-
-  if (!user) {
-    throw invalidToken;
-  }
-
-  if (user.status !== "active") {
-    throw new ApiError(403, "Account is not active.", [], "ACCOUNT_INACTIVE");
-  }
-
-  await stored.revoke("Rotated on refresh");
-
-  const tokens = await issueTokens(user, context);
-
-  return { user, ...tokens };
-};
-
-// =======================================================
-// Revoke a single refresh token (logout on this device).
-// =======================================================
-const logout = async (token) => {
-  if (!token) {
-    return;
-  }
-
-  const stored = await RefreshToken.findValidToken(token);
-
-  if (stored) {
-    await stored.revoke("User logout");
-  }
-};
-
-// =======================================================
-// Revoke every active refresh token for a user
-// (logout on all devices).
-// =======================================================
-const logoutAll = async (userId) => {
-  await RefreshToken.updateMany(
-    { user: userId, revoked: false },
-    {
-      $set: {
-        revoked: true,
-        revokedAt: new Date(),
-        revokeReason: "Logout all devices",
-      },
+        return user;
     }
-  );
-};
 
-export default {
-  register,
-  login,
-  refresh,
-  logout,
-  logoutAll,
-};
+    // ======================================================
+    // Return authenticated user
+    // ======================================================
+    async getCurrentUser(userId) {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw new ApiError(
+                404,
+                "User not found.",
+                [],
+                "USER_NOT_FOUND"
+            );
+        }
+
+        return user;
+    }
+
+    // ======================================================
+    // Update profile
+    // ======================================================
+    async updateProfile(userId, payload) {
+        const user = await User.findByIdAndUpdate(
+            userId,
+            payload,
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
+
+        if (!user) {
+            throw new ApiError(
+                404,
+                "User not found.",
+                [],
+                "USER_NOT_FOUND"
+            );
+        }
+
+        return user;
+    }
+
+    // ======================================================
+    // Complete onboarding
+    // ======================================================
+    async completeOnboarding(userId, payload = {}) {
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                ...payload,
+                isOnboardingComplete: true,
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
+
+        if (!user) {
+            throw new ApiError(
+                404,
+                "User not found.",
+                [],
+                "USER_NOT_FOUND"
+            );
+        }
+
+        return user;
+    }
+
+    // ======================================================
+    // Update last login
+    // ======================================================
+    async updateLastLogin(userId) {
+        await User.findByIdAndUpdate(userId, {
+            lastLoginAt: new Date(),
+        });
+    }
+
+    // ======================================================
+    // Delete account
+    // (Soft delete is recommended in production)
+    // ======================================================
+    async deleteAccount(userId) {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw new ApiError(
+                404,
+                "User not found.",
+                [],
+                "USER_NOT_FOUND"
+            );
+        }
+
+        user.status = "DELETED";
+
+        await user.save();
+
+        return user;
+    }
+
+    // ======================================================
+    // Find by Clerk ID
+    // ======================================================
+    async findByClerkId(clerkId) {
+        return User.findOne({
+            clerkId,
+        });
+    }
+
+    // ======================================================
+    // Find by Email
+    // ======================================================
+    async findByEmail(email) {
+        return User.findOne({
+            email,
+        });
+    }
+}
+
+export default new AuthService();

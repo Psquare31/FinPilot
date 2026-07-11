@@ -16,12 +16,6 @@ import {
     sortOrderSchema,
 } from "./common.validator.js";
 
-// ======================================================
-// Roles a workspace owner/admin is allowed to assign.
-// "owner" is intentionally excluded — ownership moves
-// only via the dedicated transfer-ownership flow.
-// ======================================================
-
 const ASSIGNABLE_ROLES = WORKSPACE_ROLES.filter(
     (role) => role !== "owner"
 );
@@ -31,62 +25,70 @@ const ASSIGNABLE_ROLES = WORKSPACE_ROLES.filter(
 // ======================================================
 
 export const createWorkspaceSchema = z.object({
-    body: z.object({
-        name: z
-            .string({
-                required_error: "Workspace name is required.",
-            })
-            .trim()
-            .min(3, "Workspace name must be at least 3 characters.")
-            .max(100, "Workspace name cannot exceed 100 characters."),
-
-        description: z
-            .string()
-            .trim()
-            .max(500, "Description cannot exceed 500 characters.")
-            .optional(),
-
-        type: z
-            .enum(WORKSPACE_TYPES, {
-                errorMap: () => ({ message: "Invalid workspace type." }),
-            })
-            .optional(),
-
-        currency: z
-            .string()
-            .trim()
-            .toUpperCase()
-            .pipe(
-                z.enum(USER_CURRENCIES, {
-                    errorMap: () => ({ message: "Invalid currency." }),
+    body: z
+        .object({
+            name: z
+                .string({
+                    required_error: "Workspace name is required.",
                 })
-            )
-            .optional(),
+                .trim()
+                .min(3, "Workspace name must be at least 3 characters.")
+                .max(100, "Workspace name cannot exceed 100 characters."),
 
-        timezone: z
-            .string()
-            .trim()
-            .max(100, "Timezone cannot exceed 100 characters.")
-            .optional(),
+            description: z
+                .string()
+                .trim()
+                .max(500, "Description cannot exceed 500 characters.")
+                .optional(),
 
-        locale: z
-            .string()
-            .trim()
-            .max(20, "Locale cannot exceed 20 characters.")
-            .optional(),
+            type: z
+                .enum(WORKSPACE_TYPES, {
+                    errorMap: () => ({
+                        message: "Invalid workspace type.",
+                    }),
+                })
+                .optional(),
 
-        color: z
-            .enum(WORKSPACE_COLORS, {
-                errorMap: () => ({ message: "Invalid workspace color." }),
-            })
-            .optional(),
+            currency: z
+                .string()
+                .trim()
+                .toUpperCase()
+                .pipe(
+                    z.enum(USER_CURRENCIES, {
+                        errorMap: () => ({
+                            message: "Invalid currency.",
+                        }),
+                    })
+                )
+                .optional(),
 
-        icon: z
-            .string()
-            .trim()
-            .max(50, "Icon cannot exceed 50 characters.")
-            .optional(),
-    }),
+            timezone: z
+                .string()
+                .trim()
+                .max(100, "Timezone cannot exceed 100 characters.")
+                .optional(),
+
+            locale: z
+                .string()
+                .trim()
+                .max(20, "Locale cannot exceed 20 characters.")
+                .optional(),
+
+            color: z
+                .enum(WORKSPACE_COLORS, {
+                    errorMap: () => ({
+                        message: "Invalid workspace color.",
+                    }),
+                })
+                .optional(),
+
+            icon: z
+                .string()
+                .trim()
+                .max(50, "Icon cannot exceed 50 characters.")
+                .optional(),
+        })
+        .strict(),
 
     params: z.object({}),
 
@@ -119,31 +121,51 @@ export const updateWorkspaceSchema = z.object({
                 .toUpperCase()
                 .pipe(
                     z.enum(USER_CURRENCIES, {
-                        errorMap: () => ({ message: "Invalid currency." }),
+                        errorMap: () => ({
+                            message: "Invalid currency.",
+                        }),
                     })
                 )
                 .optional(),
 
-            timezone: z.string().trim().max(100).optional(),
+            timezone: z
+                .string()
+                .trim()
+                .max(100)
+                .optional(),
 
-            locale: z.string().trim().max(20).optional(),
+            locale: z
+                .string()
+                .trim()
+                .max(20)
+                .optional(),
 
             color: z
                 .enum(WORKSPACE_COLORS, {
-                    errorMap: () => ({ message: "Invalid workspace color." }),
+                    errorMap: () => ({
+                        message: "Invalid workspace color.",
+                    }),
                 })
                 .optional(),
 
-            icon: z.string().trim().max(50).optional(),
+            icon: z
+                .string()
+                .trim()
+                .max(50)
+                .optional(),
 
             status: z
                 .enum(WORKSPACE_STATUS, {
-                    errorMap: () => ({ message: "Invalid workspace status." }),
+                    errorMap: () => ({
+                        message: "Invalid workspace status.",
+                    }),
                 })
                 .optional(),
         })
+        .strict()
         .refine((data) => Object.keys(data).length > 0, {
-            message: "At least one field must be provided for update.",
+            message:
+                "At least one field must be provided for update.",
         }),
 
     params: z.object({
@@ -199,7 +221,12 @@ export const getWorkspacesSchema = z.object({
             status: z.enum(WORKSPACE_STATUS).optional(),
 
             sortBy: z
-                .enum(["name", "createdAt", "updatedAt", "type"])
+                .enum([
+                    "name",
+                    "createdAt",
+                    "updatedAt",
+                    "type",
+                ])
                 .default("createdAt"),
         }),
 });
@@ -209,9 +236,11 @@ export const getWorkspacesSchema = z.object({
 // ======================================================
 
 export const transferOwnershipSchema = z.object({
-    body: z.object({
-        newOwner: objectId,
-    }),
+    body: z
+        .object({
+            newOwnerId: objectId,
+        })
+        .strict(),
 
     params: z.object({
         workspaceId: objectId,
@@ -225,27 +254,31 @@ export const transferOwnershipSchema = z.object({
 // ======================================================
 
 export const inviteMemberSchema = z.object({
-    body: z.object({
-        email: z
-            .string({
-                required_error: "Email is required.",
-            })
-            .trim()
-            .toLowerCase()
-            .email("Please provide a valid email address."),
+    body: z
+        .object({
+            email: z
+                .string({
+                    required_error: "Email is required.",
+                })
+                .trim()
+                .toLowerCase()
+                .email("Please provide a valid email address."),
 
-        role: z
-            .enum(ASSIGNABLE_ROLES, {
-                errorMap: () => ({ message: "Invalid member role." }),
-            })
-            .optional(),
+            role: z
+                .enum(ASSIGNABLE_ROLES, {
+                    errorMap: () => ({
+                        message: "Invalid member role.",
+                    }),
+                })
+                .optional(),
 
-        message: z
-            .string()
-            .trim()
-            .max(500, "Message cannot exceed 500 characters.")
-            .optional(),
-    }),
+            message: z
+                .string()
+                .trim()
+                .max(500, "Message cannot exceed 500 characters.")
+                .optional(),
+        })
+        .strict(),
 
     params: z.object({
         workspaceId: objectId,
@@ -255,7 +288,21 @@ export const inviteMemberSchema = z.object({
 });
 
 // ======================================================
-// Update Member (role / status / permissions)
+// Accept Invitation
+// ======================================================
+
+export const acceptInvitationSchema = z.object({
+    body: z.object({}).optional(),
+
+    params: z.object({
+        workspaceId: objectId,
+    }),
+
+    query: z.object({}),
+});
+
+// ======================================================
+// Update Member
 // ======================================================
 
 export const updateMemberSchema = z.object({
@@ -263,13 +310,17 @@ export const updateMemberSchema = z.object({
         .object({
             role: z
                 .enum(ASSIGNABLE_ROLES, {
-                    errorMap: () => ({ message: "Invalid member role." }),
+                    errorMap: () => ({
+                        message: "Invalid member role.",
+                    }),
                 })
                 .optional(),
 
             status: z
                 .enum(MEMBER_STATUS, {
-                    errorMap: () => ({ message: "Invalid member status." }),
+                    errorMap: () => ({
+                        message: "Invalid member status.",
+                    }),
                 })
                 .optional(),
 
@@ -277,8 +328,10 @@ export const updateMemberSchema = z.object({
                 .array(z.string().trim())
                 .optional(),
         })
+        .strict()
         .refine((data) => Object.keys(data).length > 0, {
-            message: "At least one field must be provided for update.",
+            message:
+                "At least one field must be provided for update.",
         }),
 
     params: z.object({
@@ -305,7 +358,7 @@ export const removeMemberSchema = z.object({
 });
 
 // ======================================================
-// Get Members
+// Get Workspace Members
 // ======================================================
 
 export const getMembersSchema = z.object({
@@ -324,13 +377,18 @@ export const getMembersSchema = z.object({
             status: z.enum(MEMBER_STATUS).optional(),
 
             sortBy: z
-                .enum(["role", "status", "joinedAt", "createdAt"])
+                .enum([
+                    "role",
+                    "status",
+                    "joinedAt",
+                    "createdAt",
+                ])
                 .default("createdAt"),
         }),
 });
 
 // ======================================================
-// Accept / Reject / Cancel Invitation (by token)
+// Invitation Token
 // ======================================================
 
 export const invitationTokenSchema = z.object({
@@ -339,7 +397,8 @@ export const invitationTokenSchema = z.object({
     params: z.object({
         token: z
             .string({
-                required_error: "Invitation token is required.",
+                required_error:
+                    "Invitation token is required.",
             })
             .trim()
             .min(10, "Invalid invitation token."),

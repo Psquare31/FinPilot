@@ -1,64 +1,104 @@
 import { Router } from "express";
 
-import {
-  createAccount,
-  getAccounts,
-  getAccountById,
-  updateAccount,
-  archiveAccount,
-  restoreAccount,
-  deleteAccount,
-  getTotalBalance,
-} from "../controllers/account.controller.js";
+import accountController from "../controllers/account.controller.js";
 
-import { requireAuth } from "../middlewares/auth.middleware.js";
+import requireAuth from "../middlewares/authenticate.js";
 import validate from "../middlewares/validate.js";
 
 import {
-  createAccountSchema,
-  updateAccountSchema,
+    createAccountSchema,
+    updateAccountSchema,
+    getAccountSchema,
+    deleteAccountSchema,
+    getAccountsSchema,
+    archiveAccountSchema,
+    restoreAccountSchema,
+    adjustBalanceSchema,
+    reconcileAccountSchema,
 } from "../validators/account.validator.js";
 
 const router = Router();
 
-// Authentication middleware 
 router.use(requireAuth);
 
+// ======================================================
 // Accounts
-router
-  .route("/")
-  .get(getAccounts)
-  .post(
-    validate(createAccountSchema),
-    createAccount
-  );
+// ======================================================
 
-// Total Balance
+router
+    .route("/")
+    .get(
+        validate(getAccountsSchema),
+        accountController.getAccounts
+    )
+    .post(
+        validate(createAccountSchema),
+        accountController.createAccount
+    );
+
+// ======================================================
+// Summary
+// ======================================================
+
 router.get(
-  "/summary",
-  getTotalBalance
+    "/summary",
+    validate(getAccountsSchema),
+    accountController.getTotalBalance
 );
 
-// Account by ID
+// ======================================================
+// Account
+// ======================================================
+
 router
-  .route("/:id")
-  .get(getAccountById)
-  .patch(
-    validate(updateAccountSchema),
-    updateAccount
-  )
-  .delete(deleteAccount);
+    .route("/:accountId")
+    .get(
+        validate(getAccountSchema),
+        accountController.getAccountById
+    )
+    .patch(
+        validate(updateAccountSchema),
+        accountController.updateAccount
+    )
+    .delete(
+        validate(deleteAccountSchema),
+        accountController.deleteAccount
+    );
 
-// Archive Account
+// ======================================================
+// Archive
+// ======================================================
+
 router.patch(
-  "/:id/archive",
-  archiveAccount
+    "/:accountId/archive",
+    validate(archiveAccountSchema),
+    accountController.archiveAccount
 );
 
-// Restore Account
+// ======================================================
+// Restore
+// ======================================================
+
 router.patch(
-  "/:id/restore",
-  restoreAccount
+    "/:accountId/restore",
+    validate(restoreAccountSchema),
+    accountController.restoreAccount
+);
+
+// ======================================================
+// Balance
+// ======================================================
+
+router.patch(
+    "/:accountId/adjust-balance",
+    validate(adjustBalanceSchema),
+    accountController.adjustBalance
+);
+
+router.patch(
+    "/:accountId/reconcile",
+    validate(reconcileAccountSchema),
+    accountController.reconcileAccount
 );
 
 export default router;

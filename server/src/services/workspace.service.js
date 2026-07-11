@@ -10,7 +10,32 @@ class WorkspaceService extends BaseService {
     super(Workspace);
   }
 
-  // Create Workspace
+  // Check workspace access
+  async checkWorkspaceAccess(workspaceId, userId, roles = []) {
+    const membership = await WorkspaceMember.findOne({
+      workspace: workspaceId,
+      user: userId,
+      status: "active",
+    });
+
+    if (!membership) {
+      throw new ApiError(
+        403,
+        "You do not have access to this workspace."
+      );
+    }
+
+    if (roles.length && !roles.includes(membership.role)) {
+      throw new ApiError(
+        403,
+        "You do not have permission to perform this action."
+      );
+    }
+
+    return membership;
+  }
+
+  // Create workspace
   async createWorkspace(ownerId, payload) {
     const workspace = await this.create({
       ...payload,
@@ -22,50 +47,67 @@ class WorkspaceService extends BaseService {
       user: ownerId,
       role: "owner",
       invitedBy: ownerId,
+      status: "active",
       joinedAt: new Date(),
     });
 
     return workspace;
   }
 
-  // Get Workspace by ID
-  async getWorkspace(id) {
-    return this.findById(id, {
+  // Get workspace by id
+  async getWorkspace(workspaceId, userId) {
+    await this.checkWorkspaceAccess(workspaceId, userId);
+
+    return this.findById(workspaceId, {
       populate: [
         {
           path: "owner",
-          select: "firstName lastName email imageUrl",
+          select: "firstName lastName email avatar",
         },
       ],
     });
   }
 
-  // Get User Workspaces
+  // Get user workspaces
   async getUserWorkspaces(userId) {
     const memberships = await WorkspaceMember.find({
       user: userId,
       status: "active",
     }).populate("workspace");
 
-    return memberships.map((member) => member.workspace);
+    return memberships.map((membership) => membership.workspace);
   }
 
-  // Update Workspace
-  async updateWorkspace(id, payload) {
-    return this.updateById(id, payload);
+  // Update workspace
+  async updateWorkspace(workspaceId, userId, payload) {
+    await this.checkWorkspaceAccess(workspaceId, userId, [
+      "owner",
+      "admin",
+    ]);
+
+    return this.updateById(workspaceId, payload);
   }
 
-  // Delete Workspace
-  async deleteWorkspace(id) {
+  // Delete workspace
+  async deleteWorkspace(workspaceId, userId) {
+    await this.checkWorkspaceAccess(workspaceId, userId, [
+      "owner",
+    ]);
+
     await WorkspaceMember.deleteMany({
-      workspace: id,
+      workspace: workspaceId,
     });
 
-    return this.deleteById(id);
+    return this.deleteById(workspaceId);
   }
 
-  // Invite Member to Workspace
+  // Invite member
   async inviteMember(workspaceId, email, invitedBy) {
+    await this.checkWorkspaceAccess(workspaceId, invitedBy, [
+      "owner",
+      "admin",
+    ]);
+
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -93,7 +135,7 @@ class WorkspaceService extends BaseService {
     });
   }
 
-  // Accept Invitation
+  // Accept invitation
   async acceptInvitation(workspaceId, userId) {
     const membership = await WorkspaceMember.findOneAndUpdate(
       {
@@ -116,9 +158,19 @@ class WorkspaceService extends BaseService {
     return membership;
   }
 
-  // Remove Member from Workspace
-  async removeMember(workspaceId, memberId) {
-    const member = await WorkspaceMember.findOneAndDelete({
+  // Remove member
+  async removeMember(
+    workspaceId,
+    memberId,
+    actingUserId
+  ) {
+    await this.checkWorkspaceAccess(
+      workspaceId,
+      actingUserId,
+      ["owner", "admin"]
+    );
+
+    const member = await WorkspaceMember.findOne({
       workspace: workspaceId,
       user: memberId,
     });
@@ -127,23 +179,44 @@ class WorkspaceService extends BaseService {
       throw new ApiError(404, "Member not found.");
     }
 
+    if (member.role === "owner") {
+      throw new ApiError(
+        400,
+        "Workspace owner cannot be removed."
+      );
+    }
+
+    await member.deleteOne();
+
     return member;
   }
 
-  // Update Member Role
-  async updateMemberRole(workspaceId, memberId, role) {
-    const member = await WorkspaceMember.findOneAndUpdate(
-      {
-        workspace: workspaceId,
-        user: memberId,
-      },
-      {
-        role,
-      },
-      {
-        new: true,
-      }
+  // Update member role
+  async updateMemberRole(
+    workspaceId,
+    memberId,
+    role,
+    actingUserId
+  ) {
+    await this.checkWorkspaceAccess(
+      workspaceId,
+      actingUserId,
+      ["owner"]
     );
+
+    const member =
+      await WorkspaceMember.findOneAndUpdate(
+        {
+          workspace: workspaceId,
+          user: memberId,
+        },
+        {
+          role,
+        },
+        {
+          new: true,
+        }
+      );
 
     if (!member) {
       throw new ApiError(404, "Member not found.");
@@ -152,27 +225,70 @@ class WorkspaceService extends BaseService {
     return member;
   }
 
-  // Get Workspace Members
-  async getMembers(workspaceId) {
+  // Get workspace members
+  async getMembers(workspaceId, userId) {
+    await this.checkWorkspaceAccess(
+      workspaceId,
+      userId
+    );
+
     return WorkspaceMember.find({
       workspace: workspaceId,
       status: "active",
     })
-      .populate("user", "firstName lastName email imageUrl")
+      .populate(
+        "user",
+        "firstName lastName email avatar"
+      )
       .lean();
   }
-  
-  // Transfer Workspace Ownership
-  async transferOwnership(workspaceId, newOwnerId) {
-    const workspace = await Workspace.findById(workspaceId);
+
+  // Transfer ownership
+  async transferOwnership(
+    workspaceId,
+    newOwnerId,
+    actingUserId
+  ) {
+    await this.checkWorkspaceAccess(
+      workspaceId,
+      actingUserId,
+      ["owner"]
+    );
+
+    const workspace = await Workspace.findById(
+      workspaceId
+    );
 
     if (!workspace) {
-      throw new ApiError(404, "Workspace not found.");
+      throw new ApiError(
+        404,
+        "Workspace not found."
+      );
     }
 
-    workspace.owner = newOwnerId;
+    const newOwner =
+      await WorkspaceMember.findOne({
+        workspace: workspaceId,
+        user: newOwnerId,
+        status: "active",
+      });
 
-    await workspace.save();
+    if (!newOwner) {
+      throw new ApiError(
+        404,
+        "New owner must already be a workspace member."
+      );
+    }
+
+    await WorkspaceMember.findOneAndUpdate(
+      {
+        workspace: workspaceId,
+        user: actingUserId,
+      },
+      {
+        role: "admin",
+      }
+    );
 
     await WorkspaceMember.findOneAndUpdate(
       {
@@ -183,6 +299,10 @@ class WorkspaceService extends BaseService {
         role: "owner",
       }
     );
+
+    workspace.owner = newOwnerId;
+
+    await workspace.save();
 
     return workspace;
   }
