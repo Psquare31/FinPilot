@@ -115,7 +115,7 @@ workspaceMemberSchema.virtual("isActive").get(function () {
 // Middleware
 // ==================================
 
-workspaceMemberSchema.pre("save", function (next) {
+workspaceMemberSchema.pre("save", async function () {
   if (
     this.isModified("role") &&
     (!this.permissions || this.permissions.length === 0)
@@ -130,8 +130,6 @@ workspaceMemberSchema.pre("save", function (next) {
   ) {
     this.joinedAt = new Date();
   }
-
-  next();
 });
 
 // ==================================

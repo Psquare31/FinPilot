@@ -198,20 +198,16 @@ transactionSchema.virtual("hasAttachments").get(function () {
 // Middleware
 // =========================
 
-transactionSchema.pre("validate", function (next) {
+transactionSchema.pre("validate", async function () {
   if (
     this.type === "transfer" &&
     (!this.transferAccount ||
       this.transferAccount.equals(this.account))
   ) {
-    return next(
-      new Error(
-        "Transfer transactions require a different destination account."
-      )
+    throw new Error(
+      "Transfer transactions require a different destination account."
     );
   }
-
-  next();
 });
 
 // =========================

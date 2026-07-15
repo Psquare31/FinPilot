@@ -134,7 +134,7 @@ invitationSchema.virtual("isPending").get(function () {
 // Middleware
 // =============================
 
-invitationSchema.pre("validate", function (next) {
+invitationSchema.pre("validate", async function () {
   if (!this.token) {
     this.token = crypto.randomBytes(32).toString("hex");
   }
@@ -144,8 +144,6 @@ invitationSchema.pre("validate", function (next) {
     expiry.setDate(expiry.getDate() + 7);
     this.expiresAt = expiry;
   }
-
-  next();
 });
 
 // =============================

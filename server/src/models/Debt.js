@@ -173,16 +173,12 @@ debtSchema.virtual("isCompleted").get(function () {
 // Middleware
 // ======================================
 
-debtSchema.pre("validate", function (next) {
+debtSchema.pre("validate", async function () {
   if (this.endDate <= this.startDate) {
-    return next(
-      new Error(
-        "End date must be after start date."
-      )
+    throw new Error(
+      "End date must be after start date."
     );
   }
-
-  next();
 });
 
 // ======================================

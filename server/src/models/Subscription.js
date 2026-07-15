@@ -207,27 +207,21 @@ subscriptionSchema.virtual("isActive").get(function () {
 // Middleware
 // ======================================
 
-subscriptionSchema.pre("validate", function (next) {
+subscriptionSchema.pre("validate", async function () {
   if (
     this.lastBillingDate &&
     this.nextBillingDate <= this.lastBillingDate
   ) {
-    return next(
-      new Error(
-        "Next billing date must be after the last billing date."
-      )
+    throw new Error(
+      "Next billing date must be after the last billing date."
     );
   }
-
-  next();
 });
 
-subscriptionSchema.pre("save", function (next) {
-    if (this.status === "cancelled") {
-        this.cancelledAt = new Date();
-    }
-
-    next();
+subscriptionSchema.pre("save", async function () {
+  if (this.status === "cancelled") {
+    this.cancelledAt = new Date();
+  }
 });
 
 // ======================================

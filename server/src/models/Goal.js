@@ -159,17 +159,13 @@ goalSchema.virtual("isCompleted").get(function () {
 // Middleware
 // =========================
 
-goalSchema.pre("validate", function (next) {
+goalSchema.pre("validate", async function () {
   if (
     this.targetDate &&
     this.targetDate <= new Date()
   ) {
-    return next(
-      new Error("Target date must be in the future.")
-    );
+    throw new Error("Target date must be in the future.");
   }
-
-  next();
 });
 
 const Goal =

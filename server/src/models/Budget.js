@@ -146,16 +146,12 @@ budgetSchema.virtual("isExceeded").get(function () {
 // Middleware
 // ==========================
 
-budgetSchema.pre("validate", function (next) {
+budgetSchema.pre("validate", async function () {
   if (this.startDate >= this.endDate) {
-    return next(
-      new Error(
-        "End date must be after start date."
-      )
+    throw new Error(
+      "End date must be after start date."
     );
   }
-
-  next();
 });
 
 // ==========================
