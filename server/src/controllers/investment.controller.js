@@ -117,7 +117,8 @@ export const deleteInvestment = asyncHandler(async (req, res) => {
 export const buyInvestment = asyncHandler(async (req, res) => {
   const investment = await investmentService.buyInvestment(
     req.params.id,
-    req.body
+    req.body,
+    req.user._id
   );
 
   return res.status(200).json(
@@ -133,7 +134,8 @@ export const buyInvestment = asyncHandler(async (req, res) => {
 export const sellInvestment = asyncHandler(async (req, res) => {
   const investment = await investmentService.sellInvestment(
     req.params.id,
-    req.body
+    req.body,
+    req.user._id
   );
 
   return res.status(200).json(

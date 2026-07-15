@@ -85,6 +85,30 @@ const investmentSchema = new Schema(
       maxlength: 500,
     },
 
+    lastPriceUpdatedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Every sibling model carries these flags, and the service layer already
+    // filtered and wrote them. Their absence here meant strictQuery silently
+    // stripped those conditions, so archive/restore were no-ops and the
+    // "isDeleted: false" filters matched archived and deleted rows alike.
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
     audit: {
       type: auditSchema,
       required: true,

@@ -44,8 +44,10 @@ class InvestmentService extends BaseService {
       isArchived,
     };
 
+    // The schema calls this `type`; `assetType` is kept as the query-string
+    // name for API compatibility.
     if (assetType) {
-      filter.assetType = assetType;
+      filter.type = assetType;
     }
 
     if (broker) {
@@ -89,68 +91,103 @@ class InvestmentService extends BaseService {
   }
 
   // Buy Investment
-  async buyInvestment(id, payload) {
+  //
+  // The schema holds units in `quantity` and the running cost basis in
+  // `purchasePrice` (a Money subdocument). `payload.quantity`/`payload.price`
+  // are plain numbers from the request body.
+  async buyInvestment(id, payload, userId) {
     const investment = await Investment.findById(id);
 
     if (!investment) {
       throw new ApiError(404, "Investment not found.");
     }
 
-    const totalCost =
-      investment.totalUnits * investment.averagePrice +
-      payload.units * payload.price;
+    const quantity = Number(payload.quantity);
 
-    investment.totalUnits += payload.units;
+    const price = Number(payload.price);
 
-    investment.averagePrice =
-      totalCost / investment.totalUnits;
+    if (!(quantity > 0)) {
+      throw new ApiError(400, "Quantity must be greater than zero.");
+    }
+
+    // Weighted-average cost basis: existing holding valued at its current
+    // average, plus the new lot at its actual price.
+    const existingCost = investment.quantity * investment.purchasePrice.amount;
+
+    const newCost = quantity * price;
+
+    const newQuantity = investment.quantity + quantity;
+
+    investment.quantity = newQuantity;
+
+    investment.purchasePrice.amount =
+      (existingCost + newCost) / newQuantity;
 
     await investment.save();
 
     await InvestmentTransaction.create({
       investment: investment._id,
       workspace: investment.workspace,
+      account: investment.account,
       type: "buy",
-      units: payload.units,
-      price: payload.price,
-      amount: payload.units * payload.price,
-      transactionDate:
-        payload.transactionDate ?? new Date(),
+      quantity,
+      price: {
+        amount: price,
+        currency: investment.purchasePrice.currency,
+      },
+      transactionDate: payload.transactionDate ?? new Date(),
       notes: payload.notes,
+      audit: { createdBy: userId },
     });
 
     return investment;
   }
 
   // Sell Investment
-  async sellInvestment(id, payload) {
+  async sellInvestment(id, payload, userId) {
     const investment = await Investment.findById(id);
 
     if (!investment) {
       throw new ApiError(404, "Investment not found.");
     }
 
-    if (investment.totalUnits < payload.units) {
+    const quantity = Number(payload.quantity);
+
+    const price = Number(payload.price);
+
+    if (!(quantity > 0)) {
+      throw new ApiError(400, "Quantity must be greater than zero.");
+    }
+
+    // This guard previously compared `investment.totalUnits` — a field the
+    // schema does not define — so it evaluated `undefined < quantity`, which
+    // is always false. Overselling was never blocked.
+    if (investment.quantity < quantity) {
       throw new ApiError(
         400,
         "Insufficient units available."
       );
     }
 
-    investment.totalUnits -= payload.units;
+    // Selling realises gains; it does not change the average cost basis of
+    // the units still held.
+    investment.quantity -= quantity;
 
     await investment.save();
 
     await InvestmentTransaction.create({
       investment: investment._id,
       workspace: investment.workspace,
+      account: investment.account,
       type: "sell",
-      units: payload.units,
-      price: payload.price,
-      amount: payload.units * payload.price,
-      transactionDate:
-        payload.transactionDate ?? new Date(),
+      quantity,
+      price: {
+        amount: price,
+        currency: investment.purchasePrice.currency,
+      },
+      transactionDate: payload.transactionDate ?? new Date(),
       notes: payload.notes,
+      audit: { createdBy: userId },
     });
 
     return investment;
@@ -174,17 +211,13 @@ class InvestmentService extends BaseService {
 
     const totalInvested = investments.reduce(
       (sum, investment) =>
-        sum +
-        investment.totalUnits *
-          investment.averagePrice,
+        sum + investment.quantity * investment.purchasePrice.amount,
       0
     );
 
     const currentValue = investments.reduce(
       (sum, investment) =>
-        sum +
-        investment.totalUnits *
-          investment.currentPrice,
+        sum + investment.quantity * investment.currentPrice.amount,
       0
     );
 
@@ -217,20 +250,17 @@ class InvestmentService extends BaseService {
 
     const totalValue = investments.reduce(
       (sum, investment) =>
-        sum +
-        investment.totalUnits *
-          investment.currentPrice,
+        sum + investment.quantity * investment.currentPrice.amount,
       0
     );
 
     return investments.map((investment) => {
       const value =
-        investment.totalUnits *
-        investment.currentPrice;
+        investment.quantity * investment.currentPrice.amount;
 
       return {
         investment: investment.name,
-        assetType: investment.assetType,
+        assetType: investment.type,
         value,
         allocation:
           totalValue > 0
