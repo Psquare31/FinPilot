@@ -1,0 +1,49 @@
+# Backing services for the test suite and the benchmark harness.
+#
+# Both are real servers, not mocks or in-memory fakes:
+#   - the defects the suite guards against (aggregation casting, $group field
+#     paths, index conflicts) only reproduce against a real MongoDB
+#   - the rate limiter fails closed on a Redis error, so a fake/absent Redis
+#     would make every HTTP test 500 for reasons unrelated to the code
+#
+# Start:  docker compose -f docker-compose.test.yml up -d
+# Stop:   docker compose -f docker-compose.test.yml down -v
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: finpilot-test-mongo
+    ports:
+      # 27018, not 27017, so a local development MongoDB is never touched.
+      - "27018:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ping:1}).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: finpilot-test-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # The application talks to Upstash over REST via @upstash/redis, which cannot
+  # speak the Redis wire protocol. serverless-redis-http is Upstash's own proxy:
+  # it exposes the REST API in front of an ordinary Redis server, so tests
+  # exercise the real client and the real limiter.
+  redis-http:
+    image: hiett/serverless-redis-http:latest
+    container_name: finpilot-test-srh
+    ports:
+      - "8079:80"
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: test_token
+      SRH_CONNECTION_STRING: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy

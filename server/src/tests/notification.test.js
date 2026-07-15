@@ -1,5 +1,9 @@
-describe("Notifications", () => {
-  test("Placeholder", () => {
-    expect(true).toBe(true);
-  });
+// Not yet implemented.
+//
+// These are declared as todos rather than as `expect(true).toBe(true)`.
+// A placeholder that always passes reports the same green tick as a real
+// test, which is how this suite previously showed 11 passing files while
+// asserting nothing about the application.
+describe("notification", () => {
+  test.todo("covers the notification service against known fixtures");
 });
