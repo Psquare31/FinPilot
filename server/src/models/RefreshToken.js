@@ -39,7 +39,10 @@ const refreshTokenSchema = new Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
+      // No `index: true` here. It produces a plain "expiresAt_1" index, which
+      // collides by name with the TTL index declared below — MongoDB rejects
+      // the second, so the TTL never existed and expired tokens were never
+      // reaped. The TTL index serves ordinary queries on this field too.
     },
 
     revoked: {

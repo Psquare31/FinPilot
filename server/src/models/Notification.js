@@ -113,11 +113,13 @@ notificationSchema.index({
   createdAt: -1,
 });
 
-notificationSchema.index({
-  expiresAt: 1,
-});
-
-// Automatically delete expired notifications
+// Automatically delete expired notifications.
+//
+// A plain { expiresAt: 1 } index was previously declared alongside this one.
+// Both resolve to the same auto-generated name ("expiresAt_1"), so MongoDB
+// rejected the second as conflicting and the TTL index was never created —
+// expired notifications were never reaped. A TTL index also serves ordinary
+// range/equality queries on the field, so only this one is needed.
 notificationSchema.index(
   { expiresAt: 1 },
   {
