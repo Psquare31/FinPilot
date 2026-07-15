@@ -1,184 +1,314 @@
 import ApiError from "../utils/ApiError.js";
 
 class BaseService {
-  constructor(model) {
-    if (!model) {
-      throw new Error("Model is required for BaseService.");
+    constructor(model) {
+        if (!model) {
+            throw new Error(
+                "Model is required for BaseService."
+            );
+        }
+
+        this.model = model;
     }
 
-    this.model = model;
-  }
+    // ======================================================
+    // Create document.
+    // ======================================================
 
-  async create(payload, options = {}) {
-    const [document] = await this.model.create([payload], options);
-    return document;
-  }
+    async create(payload, options = {}) {
+        const [document] =
+            await this.model.create(
+                [payload],
+                options
+            );
 
-  async createMany(payload = [], options = {}) {
-    return this.model.insertMany(payload, options);
-  }
-
-  async findById(id, options = {}) {
-    const document = await this.model
-      .findById(id)
-      .setOptions(options)
-      .lean();
-
-    if (!document) {
-      throw new ApiError(404, `${this.model.modelName} not found.`);
+        return document;
     }
 
-    return document;
-  }
+    // ======================================================
+    // Create multiple documents.
+    // ======================================================
 
-  async findOne(filter = {}, options = {}) {
-    return this.model.findOne(filter).setOptions(options).lean();
-  }
-
-  async find(filter = {}, options = {}) {
-    return this.model.find(filter).setOptions(options).lean();
-  }
-
-  async paginate(
-    filter = {},
-    {
-      page = 1,
-      limit = 10,
-      sort = "-createdAt",
-      select = "",
-      populate = [],
-    } = {}
-  ) {
-    const skip = (page - 1) * limit;
-
-    let query = this.model
-      .find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .select(select)
-      .lean();
-
-    if (populate.length) {
-      populate.forEach((item) => {
-        query = query.populate(item);
-      });
+    async createMany(
+        payload = [],
+        options = {}
+    ) {
+        return this.model.insertMany(
+            payload,
+            options
+        );
     }
 
-    const [items, total] = await Promise.all([
-      query,
-      this.model.countDocuments(filter),
-    ]);
+    // ======================================================
+    // Find document by id.
+    // ======================================================
 
-    return {
-      items,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
-        hasNext: page * limit < total,
-        hasPrev: page > 1,
-      },
-    };
-  }
+    async findById(id, options = {}) {
+        const query = this.model.findById(id);
 
-  async updateById(id, payload, options = {}) {
-    const document = await this.model.findByIdAndUpdate(
-      id,
-      payload,
-      {
-        new: true,
-        runValidators: true,
-        ...options,
-      }
-    );
+        if (options.select) {
+            query.select(options.select);
+        }
 
-    if (!document) {
-      throw new ApiError(
-        404,
-        `${this.model.modelName} not found.`
-      );
+        if (options.populate) {
+            const populate = Array.isArray(
+                options.populate
+            )
+                ? options.populate
+                : [options.populate];
+
+            populate.forEach((item) =>
+                query.populate(item)
+            );
+        }
+
+        if (options.lean !== false) {
+            query.lean();
+        }
+
+        const document = await query;
+
+        if (!document) {
+            throw new ApiError(
+                404,
+                `${this.model.modelName} not found.`
+            );
+        }
+
+        return document;
     }
 
-    return document;
-  }
+    // ======================================================
+    // Find one document.
+    // ======================================================
 
-  async updateOne(filter, payload, options = {}) {
-    return this.model.findOneAndUpdate(filter, payload, {
-      new: true,
-      runValidators: true,
-      ...options,
-    });
-  }
+    async findOne(
+        filter = {},
+        options = {}
+    ) {
+        const query =
+            this.model.findOne(filter);
 
-  async deleteById(id, options = {}) {
-    const document =
-      await this.model.findByIdAndDelete(id, options);
+        if (options.select) {
+            query.select(options.select);
+        }
 
-    if (!document) {
-      throw new ApiError(
-        404,
-        `${this.model.modelName} not found.`
-      );
+        if (options.populate) {
+            const populate = Array.isArray(
+                options.populate
+            )
+                ? options.populate
+                : [options.populate];
+
+            populate.forEach((item) =>
+                query.populate(item)
+            );
+        }
+
+        if (options.sort) {
+            query.sort(options.sort);
+        }
+
+        if (options.lean !== false) {
+            query.lean();
+        }
+
+        return query;
     }
 
-    return document;
-  }
+    // ======================================================
+    // Find one or fail.
+    // ======================================================
 
-  async deleteMany(filter = {}) {
-    return this.model.deleteMany(filter);
-  }
+    async findOneOrFail(
+        filter = {},
+        options = {}
+    ) {
+        const document =
+            await this.findOne(
+                filter,
+                options
+            );
 
-  async count(filter = {}) {
-    return this.model.countDocuments(filter);
-  }
+        if (!document) {
+            throw new ApiError(
+                404,
+                `${this.model.modelName} not found.`
+            );
+        }
 
-  async exists(filter = {}) {
-    return this.model.exists(filter);
-  }
-
-  async aggregate(pipeline = []) {
-    return this.model.aggregate(pipeline);
-  }
-
-  async softDelete(id) {
-    const document = await this.model.findByIdAndUpdate(
-      id,
-      {
-        isDeleted: true,
-        deletedAt: new Date(),
-      },
-      {
-        new: true,
-      }
-    );
-
-    if (!document) {
-      throw new ApiError(404, `${this.model.modelName} not found.`);
+        return document;
     }
 
-    return document;
-  }
+    // ======================================================
+    // Find documents.
+    // ======================================================
 
-  async restore(id) {
-    const document = await this.model.findByIdAndUpdate(
-      id,
-      {
-        isDeleted: false,
-        deletedAt: null,
-      },
-      {
-        new: true,
-      }
-    );
+    async find(
+        filter = {},
+        options = {}
+    ) {
+        const query =
+            this.model.find(filter);
 
-    if (!document) {
-      throw new ApiError(404, `${this.model.modelName} not found.`);
+        if (options.select) {
+            query.select(options.select);
+        }
+
+        if (options.populate) {
+            const populate = Array.isArray(
+                options.populate
+            )
+                ? options.populate
+                : [options.populate];
+
+            populate.forEach((item) =>
+                query.populate(item)
+            );
+        }
+
+        if (options.sort) {
+            query.sort(options.sort);
+        }
+
+        if (options.skip) {
+            query.skip(options.skip);
+        }
+
+        if (options.limit) {
+            query.limit(options.limit);
+        }
+
+        if (options.lean !== false) {
+            query.lean();
+        }
+
+        return query;
     }
 
-    return document;
-  }
+    // ======================================================
+    // Check existence.
+    // ======================================================
+
+    async exists(filter = {}) {
+        return Boolean(
+            await this.model.exists(filter)
+        );
+    }
+
+    // ======================================================
+    // Check existence or fail.
+    // ======================================================
+
+    async existsOrFail(
+        filter = {},
+        message
+    ) {
+        const exists =
+            await this.exists(filter);
+
+        if (!exists) {
+            throw new ApiError(
+                404,
+                message ||
+                    `${this.model.modelName} not found.`
+            );
+        }
+
+        return true;
+    }
+
+    // ======================================================
+    // Update by id.
+    // ======================================================
+
+    async updateById(
+        id,
+        payload,
+        options = {}
+    ) {
+        const document =
+            await this.model.findByIdAndUpdate(
+                id,
+                payload,
+                {
+                    new: true,
+                    runValidators: true,
+                    ...options,
+                }
+            );
+
+        if (!document) {
+            throw new ApiError(
+                404,
+                `${this.model.modelName} not found.`
+            );
+        }
+
+        return document;
+    }
+
+    // ======================================================
+    // Delete by id.
+    // ======================================================
+
+    async deleteById(id) {
+        const document =
+            await this.model.findByIdAndDelete(
+                id
+            );
+
+        if (!document) {
+            throw new ApiError(
+                404,
+                `${this.model.modelName} not found.`
+            );
+        }
+
+        return document;
+    }
+
+    // ======================================================
+    // Archive by id.
+    // ======================================================
+
+    async archiveById(id) {
+        return this.updateById(id, {
+            isArchived: true,
+        });
+    }
+
+    // ======================================================
+    // Restore by id.
+    // ======================================================
+
+    async restoreById(id) {
+        return this.updateById(id, {
+            isArchived: false,
+        });
+    }
+
+    // ======================================================
+    // Count documents.
+    // ======================================================
+
+    async count(filter = {}) {
+        return this.model.countDocuments(
+            filter
+        );
+    }
+
+    // ======================================================
+    // Aggregate documents.
+    // ======================================================
+
+    async aggregate(
+        pipeline = []
+    ) {
+        return this.model.aggregate(
+            pipeline
+        );
+    }
 }
 
 export default BaseService;

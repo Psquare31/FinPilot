@@ -1,78 +1,103 @@
 import { z } from "zod";
 
-const passwordField = z
-    .string({ required_error: "Password is required." })
-    .min(8, "Password must be at least 8 characters.")
-    .max(128, "Password must be at most 128 characters.");
-
-const emailField = z
-    .string({ required_error: "Email is required." })
-    .trim()
-    .toLowerCase()
-    .email("Please enter a valid email.");
-
-export const registerSchema = z.object({
-    body: z.object({
-        firstName: z
-            .string({ required_error: "First name is required." })
-            .trim()
-            .min(2, "First name must be at least 2 characters.")
-            .max(50),
-
-        lastName: z
-            .string({ required_error: "Last name is required." })
-            .trim()
-            .min(2, "Last name must be at least 2 characters.")
-            .max(50),
-
-        email: emailField,
-
-        password: passwordField,
-    }),
-    params: z.object({}),
-    query: z.object({}),
-});
-
-export const loginSchema = z.object({
-    body: z.object({
-        email: emailField,
-        password: z
-            .string({ required_error: "Password is required." })
-            .min(1, "Password is required."),
-    }),
-    params: z.object({}),
-    query: z.object({}),
-});
-
-export const refreshSchema = z.object({
-    body: z
-        .object({
-            refreshToken: z.string().optional(),
-        })
-        .optional(),
-    params: z.object({}),
-    query: z.object({}),
-});
-
-export const logoutSchema = refreshSchema;
-
-export const syncUserSchema = z.object({
-    body: z.object({}).optional(),
-    params: z.object({}),
-    query: z.object({}),
-});
+import {
+    USER_CURRENCIES,
+    USER_THEMES,
+} from "../constants/index.js";
 
 export const updateProfileSchema = z.object({
-    body: z.object({
-        preferredCurrency: z
-            .string()
-            .length(3)
-            .optional(),
+    body: z
+        .object({
+            firstName: z
+                .string()
+                .trim()
+                .min(2, "First name must be at least 2 characters.")
+                .max(50, "First name cannot exceed 50 characters.")
+                .optional(),
 
-        theme: z
-            .enum(["light", "dark", "system"])
-            .optional(),
-    }),
+            lastName: z
+                .string()
+                .trim()
+                .min(2, "Last name must be at least 2 characters.")
+                .max(50, "Last name cannot exceed 50 characters.")
+                .optional(),
+
+            username: z
+                .string()
+                .trim()
+                .min(3, "Username must be at least 3 characters.")
+                .max(30, "Username cannot exceed 30 characters.")
+                .regex(
+                    /^[a-zA-Z0-9_]+$/,
+                    "Username can only contain letters, numbers and underscores."
+                )
+                .optional(),
+
+            phoneNumber: z
+                .string()
+                .trim()
+                .min(8, "Phone number is too short.")
+                .max(20, "Phone number is too long.")
+                .optional(),
+
+            profileImage: z
+                .string()
+                .trim()
+                .url("Profile image must be a valid URL.")
+                .optional(),
+
+            preferredCurrency: z
+                .enum(USER_CURRENCIES)
+                .optional(),
+
+            timezone: z
+                .string()
+                .trim()
+                .min(1, "Timezone is required.")
+                .max(100, "Invalid timezone.")
+                .optional(),
+
+            theme: z
+                .enum(USER_THEMES)
+                .optional(),
+        })
+        .strict(),
+
     params: z.object({}),
+
+    query: z.object({}),
+});
+
+export const completeOnboardingSchema = z.object({
+    body: z
+        .object({
+            preferredCurrency: z.enum(USER_CURRENCIES, {
+                required_error: "Preferred currency is required.",
+            }),
+
+            timezone: z
+                .string({
+                    required_error: "Timezone is required.",
+                })
+                .trim()
+                .min(1, "Timezone is required.")
+                .max(100, "Invalid timezone."),
+
+            workspaceName: z
+                .string({
+                    required_error: "Workspace name is required.",
+                })
+                .trim()
+                .min(2, "Workspace name must be at least 2 characters.")
+                .max(100, "Workspace name cannot exceed 100 characters."),
+
+            theme: z
+                .enum(USER_THEMES)
+                .optional(),
+        })
+        .strict(),
+
+    params: z.object({}),
+
     query: z.object({}),
 });

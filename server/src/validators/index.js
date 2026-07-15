@@ -1,9 +1,6 @@
 export * from "./common.validator.js";
 
 export * from "./auth.validator.js";
-export * from "./workspace.validator.js";
-export * from "./account.validator.js";
-export * from "./category.validator.js";
 export * from "./transaction.validator.js";
 export * from "./budget.validator.js";
 export * from "./goal.validator.js";

@@ -1,45 +1,45 @@
 import { Router } from "express";
 
-import {
-  register,
-  login,
-  refresh,
-  logout,
-  logoutAll,
-  me,
-} from "../controllers/auth.controller.js";
+import authController from "../controllers/auth.controller.js";
 
 import validate from "../middlewares/validate.js";
-import { requireAuth } from "../middlewares/auth.middleware.js";
-import { authLimiter } from "../middlewares/rateLimiter.middleware.js";
+import requireAuth from "../middlewares/authenticate.js";
 
 import {
-  registerSchema,
-  loginSchema,
-  refreshSchema,
-  logoutSchema,
+    updateProfileSchema,
+    completeOnboardingSchema,
 } from "../validators/auth.validator.js";
 
 const router = Router();
 
 // ======================================================
-// Public
+// Protected Routes
 // ======================================================
 
-router.post("/register", authLimiter, validate(registerSchema), register);
+router.get(
+    "/me",
+    requireAuth,
+    authController.me
+);
 
-router.post("/login", authLimiter, validate(loginSchema), login);
+router.patch(
+    "/profile",
+    requireAuth,
+    validate(updateProfileSchema),
+    authController.updateProfile
+);
 
-router.post("/refresh", validate(refreshSchema), refresh);
+router.patch(
+    "/onboarding",
+    requireAuth,
+    validate(completeOnboardingSchema),
+    authController.completeOnboarding
+);
 
-router.post("/logout", validate(logoutSchema), logout);
-
-// ======================================================
-// Authenticated
-// ======================================================
-
-router.get("/me", requireAuth, me);
-
-router.post("/logout-all", requireAuth, logoutAll);
+router.delete(
+    "/account",
+    requireAuth,
+    authController.deleteAccount
+);
 
 export default router;

@@ -5,15 +5,17 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
+import { clerkMiddleware } from "@clerk/express";
 
 import env from "./config/env/index.js";
 import { morganStream } from "./config/logger/logger.js";
 import swaggerSpec from "./config/swagger/swagger.js";
 
 import routes from "./routes/index.js";
+
+import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
 import notFound from "./middlewares/notFound.js";
 import errorHandler from "./middlewares/errorHandler.js";
-import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
 
 const app = express();
 
@@ -30,15 +32,19 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
 app.use(cookieParser());
+
+app.use(clerkMiddleware());
+
 app.use(compression());
 
-// Rate limiting middleware
-app.use("/api", apiLimiter);
+app.use("/api/v1", apiLimiter);
 
-// Strip MongoDB operator keys ($, .) from request bodies to guard
-// against NoSQL injection. req.query is read-only under Express 5,
-// so we only sanitize the mutable body here.
+// ======================================================
+// Sanitize request body to prevent NoSQL injection
+// ======================================================
+
 const sanitize = (value) => {
     if (Array.isArray(value)) {
         return value.map(sanitize);
@@ -49,6 +55,7 @@ const sanitize = (value) => {
             if (!key.startsWith("$") && !key.includes(".")) {
                 acc[key] = sanitize(value[key]);
             }
+
             return acc;
         }, {});
     }
@@ -60,11 +67,12 @@ app.use((req, res, next) => {
     if (req.body && typeof req.body === "object") {
         req.body = sanitize(req.body);
     }
+
     next();
 });
 
 // ======================================================
-// Request logging
+// Request Logging
 // ======================================================
 
 app.use(
@@ -74,7 +82,7 @@ app.use(
 );
 
 // ======================================================
-// API documentation
+// API Documentation
 // ======================================================
 
 app.use(
@@ -86,7 +94,7 @@ app.use(
 );
 
 // ======================================================
-// Routes
+// Root Route
 // ======================================================
 
 app.get("/", (req, res) => {
@@ -98,9 +106,18 @@ app.get("/", (req, res) => {
     });
 });
 
+// ======================================================
+// API Routes
+// ======================================================
+
 app.use("/api/v1", routes);
 
+// ======================================================
+// Error Handling
+// ======================================================
+
 app.use(notFound);
+
 app.use(errorHandler);
 
 export default app;

@@ -5,12 +5,17 @@ import {
   USER_THEMES,
   USER_CURRENCIES,
   ACCOUNT_STATUS,
+  AUTH_PROVIDERS,
 } from "../constants/index.js";
 
 const { Schema } = mongoose;
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME = 30 * 60 * 1000; // 30 minutes
+
+// =======================
+// Avatar Schema
+// =======================
 
 const avatarSchema = new Schema(
   {
@@ -19,6 +24,7 @@ const avatarSchema = new Schema(
       default: "",
       trim: true,
     },
+
     publicId: {
       type: String,
       default: "",
@@ -28,8 +34,30 @@ const avatarSchema = new Schema(
   { _id: false }
 );
 
+// =======================
+// User Schema
+// =======================
+
 const userSchema = new Schema(
   {
+    // Clerk User ID
+    clerkId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+      trim: true,
+    },
+
+    // Authentication Provider
+    authProvider: {
+      type: String,
+      enum: AUTH_PROVIDERS,
+      required: true,
+      default: "EMAIL",
+    },
+
+    // Basic Information
     firstName: {
       type: String,
       required: [true, "First name is required"],
@@ -58,11 +86,12 @@ const userSchema = new Schema(
       ],
     },
 
+    // Only EMAIL users have passwords
     password: {
       type: String,
-      required: [true, "Password is required"],
       minlength: 8,
       select: false,
+      default: null,
     },
 
     avatar: {
@@ -107,17 +136,26 @@ const userSchema = new Schema(
       default: "system",
     },
 
+    // Verification
     emailVerified: {
       type: Boolean,
       default: false,
     },
 
+    // Account Status
     status: {
       type: String,
       enum: ACCOUNT_STATUS,
       default: "active",
     },
 
+    // First-time setup completed?
+    isOnboardingComplete: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Security
     failedLoginAttempts: {
       type: Number,
       default: 0,
@@ -129,7 +167,8 @@ const userSchema = new Schema(
       default: null,
     },
 
-    lastLogin: {
+    // Activity
+    lastLoginAt: {
       type: Date,
       default: null,
     },
@@ -143,14 +182,16 @@ const userSchema = new Schema(
     timestamps: true,
     versionKey: false,
     minimize: false,
+
     toJSON: {
       virtuals: true,
+
       transform(doc, ret) {
         delete ret.password;
-        delete ret.__v;
         return ret;
       },
     },
+
     toObject: {
       virtuals: true,
     },
@@ -162,7 +203,19 @@ const userSchema = new Schema(
 // =======================
 
 userSchema.index({ email: 1 }, { unique: true });
+
+userSchema.index(
+  { clerkId: 1 },
+  {
+    unique: true,
+    sparse: true,
+  }
+);
+
 userSchema.index({ status: 1 });
+
+userSchema.index({ authProvider: 1 });
+
 userSchema.index({ createdAt: -1 });
 
 // =======================
@@ -174,30 +227,53 @@ userSchema.virtual("fullName").get(function () {
 });
 
 userSchema.virtual("isLocked").get(function () {
-  return !!(this.lockUntil && this.lockUntil > Date.now());
+  return !!(
+    this.lockUntil &&
+    this.lockUntil.getTime() > Date.now()
+  );
 });
 
 // =======================
 // Middleware
 // =======================
 
-userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+userSchema.pre("save", async function (next) {
+  // Skip hashing if password doesn't exist (Google, Apple, Microsoft users)
+  if (!this.password) return next();
 
-  this.password = await bcrypt.hash(this.password, 12);
+  // Skip if password wasn't modified
+  if (!this.isModified("password")) return next();
 
-  this.passwordChangedAt = new Date(Date.now() - 1000);
+  try {
+    this.password = await bcrypt.hash(this.password, 12);
+
+    this.passwordChangedAt = new Date(Date.now() - 1000);
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // =======================
 // Instance Methods
 // =======================
 
+// Compare Password
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password) return false;
+
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+// Increment failed login attempts
 userSchema.methods.incrementLoginAttempts = async function () {
+  if (this.isLocked) {
+    return this.updateOne({
+      $inc: { failedLoginAttempts: 1 },
+    });
+  }
+
   this.failedLoginAttempts += 1;
 
   if (this.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
@@ -205,27 +281,70 @@ userSchema.methods.incrementLoginAttempts = async function () {
   }
 
   await this.save();
+
+  return this;
 };
 
+// Reset failed login attempts
 userSchema.methods.resetLoginAttempts = async function () {
   this.failedLoginAttempts = 0;
   this.lockUntil = null;
-  this.lastLogin = new Date();
+  this.lastLoginAt = new Date();
 
   await this.save();
+
+  return this;
+};
+
+// Update last login timestamp
+userSchema.methods.updateLastLogin = async function () {
+  this.lastLoginAt = new Date();
+
+  await this.save();
+
+  return this;
+};
+
+// Clerk Onboarding Status
+userSchema.methods.completeOnboarding = async function () {
+  this.isOnboardingComplete = true;
+
+  await this.save();
+
+  return this;
 };
 
 // =======================
 // Static Methods
 // =======================
 
+// Find by Email
 userSchema.statics.findByEmail = function (email) {
   return this.findOne({
     email: email.toLowerCase(),
   }).select("+password");
 };
 
-// ===========================
+//Find by Clerk ID
+userSchema.statics.findByClerkId = function (clerkId) {
+  return this.findOne({ clerkId });
+};
+
+// Find Active Users
+userSchema.statics.findActiveUsers = function () {
+  return this.find({
+    status: "active",
+  });
+};
+
+// Find Onboarded Users
+userSchema.statics.findOnboardedUsers = function () {
+  return this.find({
+    isOnboardingComplete: true,
+  });
+};
+
+//=======================
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
