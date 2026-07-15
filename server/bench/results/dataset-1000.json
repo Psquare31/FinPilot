@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-07-15T20:05:46.752Z",
+  "uri": "mongodb://127.0.0.1:27018/finpilot_bench",
+  "options": {
+    "transactions": 1000,
+    "seed": 42,
+    "workspaceCount": 3,
+    "accountsPerWorkspace": 6,
+    "batchSize": 5000
+  },
+  "determinism": {
+    "seed": 42,
+    "referenceDate": "2026-07-01T00:00:00.000Z",
+    "historyMonths": 24,
+    "note": "Same seed + same options reproduce this dataset exactly, _ids included."
+  },
+  "counts": {
+    "users": 1,
+    "workspaces": 3,
+    "categories": 42,
+    "accounts": 18,
+    "transactions": 1000
+  },
+  "storage": {
+    "dataSizeBytes": 852137,
+    "storageSizeBytes": 4096,
+    "totalIndexSizeBytes": 225280,
+    "avgDocumentBytes": 852,
+    "indexSizesBytes": {
+      "_id_": 4096,
+      "workspace_1": 20480,
+      "workspace_1_transactionDate_-1": 28672,
+      "workspace_1_account_1": 24576,
+      "workspace_1_category_1": 24576,
+      "workspace_1_type_1": 24576,
+      "workspace_1_status_1": 24576,
+      "workspace_1_isDeleted_1": 20480,
+      "merchant.name_1": 28672,
+      "tags_1": 24576
+    }
+  },
+  "timings": {
+    "insertSeconds": 0.59,
+    "insertDocsPerSecond": 1701,
+    "indexBuildSeconds": 0.44
+  }
+}

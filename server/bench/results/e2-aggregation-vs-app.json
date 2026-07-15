@@ -1,0 +1,181 @@
+{
+  "experiment": "E2 — database-side $group vs application-side summation",
+  "generatedAt": "2026-07-15T19:09:25.611Z",
+  "environment": {
+    "node": "v22.14.0",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": 28
+  },
+  "options": {
+    "scales": [
+      1000,
+      10000,
+      100000
+    ],
+    "iterations": 20,
+    "warmup": 3,
+    "seed": 42
+  },
+  "results": [
+    {
+      "scale": 1000,
+      "workspaceMatchedDocs": 327,
+      "truth": {
+        "income": 4384500,
+        "expense": 3585470
+      },
+      "strategies": {
+        "aggregate": {
+          "label": "A. $group in MongoDB",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 2.913,
+          "stdDevMs": 0.557,
+          "minMs": 2.122,
+          "p50Ms": 2.788,
+          "p95Ms": 3.939,
+          "p99Ms": 4.158,
+          "maxMs": 4.158,
+          "heapDeltaBytes": 1826720
+        },
+        "app-full": {
+          "label": "B. find().lean() + reduce (full docs)",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 20.601,
+          "stdDevMs": 2.749,
+          "minMs": 17.53,
+          "p50Ms": 20.078,
+          "p95Ms": 27.51,
+          "p99Ms": 28.191,
+          "maxMs": 28.191,
+          "heapDeltaBytes": 7774480
+        },
+        "app-proj": {
+          "label": "C. find().select() + reduce (projected)",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 5.599,
+          "stdDevMs": 0.456,
+          "minMs": 4.752,
+          "p50Ms": 5.594,
+          "p95Ms": 6.376,
+          "p99Ms": 6.551,
+          "maxMs": 6.551,
+          "heapDeltaBytes": 2178016
+        }
+      },
+      "ratios": {
+        "appFullVsAggregate": 7.2,
+        "appProjectedVsAggregate": 2.01
+      }
+    },
+    {
+      "scale": 10000,
+      "workspaceMatchedDocs": 3259,
+      "truth": {
+        "income": 47470558,
+        "expense": 32861386
+      },
+      "strategies": {
+        "aggregate": {
+          "label": "A. $group in MongoDB",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 5.735,
+          "stdDevMs": 0.439,
+          "minMs": 5.11,
+          "p50Ms": 5.596,
+          "p95Ms": 6.567,
+          "p99Ms": 6.779,
+          "maxMs": 6.779,
+          "heapDeltaBytes": 511784
+        },
+        "app-full": {
+          "label": "B. find().lean() + reduce (full docs)",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 162.246,
+          "stdDevMs": 24.632,
+          "minMs": 141.445,
+          "p50Ms": 155.237,
+          "p95Ms": 180.545,
+          "p99Ms": 259.572,
+          "maxMs": 259.572,
+          "heapDeltaBytes": 49891456
+        },
+        "app-proj": {
+          "label": "C. find().select() + reduce (projected)",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 23.879,
+          "stdDevMs": 3.432,
+          "minMs": 20.544,
+          "p50Ms": 22.8,
+          "p95Ms": 31.197,
+          "p99Ms": 31.553,
+          "maxMs": 31.553,
+          "heapDeltaBytes": 4945568
+        }
+      },
+      "ratios": {
+        "appFullVsAggregate": 27.74,
+        "appProjectedVsAggregate": 4.07
+      }
+    },
+    {
+      "scale": 100000,
+      "workspaceMatchedDocs": 32659,
+      "truth": {
+        "income": 505308347,
+        "expense": 338047607
+      },
+      "strategies": {
+        "aggregate": {
+          "label": "A. $group in MongoDB",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 39.623,
+          "stdDevMs": 1.898,
+          "minMs": 36.726,
+          "p50Ms": 38.972,
+          "p95Ms": 42.571,
+          "p99Ms": 43.89,
+          "maxMs": 43.89,
+          "heapDeltaBytes": 655152
+        },
+        "app-full": {
+          "label": "B. find().lean() + reduce (full docs)",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 1847.579,
+          "stdDevMs": 234.924,
+          "minMs": 1595.214,
+          "p50Ms": 1704.647,
+          "p95Ms": 2223.861,
+          "p99Ms": 2336.054,
+          "maxMs": 2336.054,
+          "heapDeltaBytes": 162662040
+        },
+        "app-proj": {
+          "label": "C. find().select() + reduce (projected)",
+          "correct": true,
+          "samples": 20,
+          "meanMs": 203.858,
+          "stdDevMs": 19.699,
+          "minMs": 177.01,
+          "p50Ms": 196.881,
+          "p95Ms": 236.359,
+          "p99Ms": 237.525,
+          "maxMs": 237.525,
+          "heapDeltaBytes": 48137056
+        }
+      },
+      "ratios": {
+        "appFullVsAggregate": 43.74,
+        "appProjectedVsAggregate": 5.05
+      }
+    }
+  ]
+}
