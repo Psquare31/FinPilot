@@ -1,5 +1,6 @@
 import BaseService from "./base.service.js";
 import ApiError from "../utils/ApiError.js";
+import toObjectId from "../utils/toObjectId.js";
 
 import InvestmentTransaction from "../models/InvestmentTransaction.js";
 
@@ -113,15 +114,24 @@ class InvestmentTransactionService extends BaseService {
       await InvestmentTransaction.aggregate([
         {
           $match: {
-            workspace,
-            isDeleted: false,
+            // No `isDeleted` filter: InvestmentTransaction is an immutable
+            // ledger and the schema defines no such field. find() would have
+            // had the condition stripped by strictQuery, but aggregate()
+            // passes $match through raw — matching zero documents, since a
+            // missing field does not equal false.
+            workspace: toObjectId(workspace, "workspace"),
           },
         },
         {
           $group: {
             _id: "$type",
+            // InvestmentTransaction has no `amount` field; the traded value is
+            // quantity x unit price. Brokerage and taxes are deliberately
+            // excluded so this reports gross traded value per side.
             totalAmount: {
-              $sum: "$amount",
+              $sum: {
+                $multiply: ["$quantity", "$price.amount"],
+              },
             },
             totalTransactions: {
               $sum: 1,

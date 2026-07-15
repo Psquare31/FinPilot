@@ -29,6 +29,7 @@ const budgetAlertsJob = cron.schedule(
               workspace: budget.workspace,
               category: budget.category,
               type: "expense",
+              isDeleted: false,
               transactionDate: {
                 $gte: budget.startDate,
                 $lte: budget.endDate,
@@ -39,7 +40,7 @@ const budgetAlertsJob = cron.schedule(
             $group: {
               _id: null,
               spent: {
-                $sum: "$amount",
+                $sum: "$money.amount",
               },
             },
           },
@@ -47,8 +48,12 @@ const budgetAlertsJob = cron.schedule(
 
         const spent = result[0]?.spent ?? 0;
 
+        // `budget.amount` does not exist on the schema (it is the Money
+        // subdocument `budgetAmount`), so this divided by undefined and
+        // produced NaN — and `NaN < 80` is false, meaning every budget fell
+        // through to firing an alert with NaN in the message.
         const percentage =
-          (spent / budget.amount) * 100;
+          (spent / budget.budgetAmount.amount) * 100;
 
         if (percentage < 80) continue;
 
