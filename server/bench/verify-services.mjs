@@ -51,7 +51,6 @@ check("dashboard.getTransactionSummary income", dash.income, truth.income);
 check("dashboard.getTransactionSummary expense", dash.expense, truth.expense);
 
 const ive = await transactionService.getIncomeVsExpense(idString);
-const iveIncome = ive.find?.((r) => r._id === "income")?.total ?? ive.income;
 console.log("\n  transaction.getIncomeVsExpense raw:", JSON.stringify(ive).slice(0, 160));
 
 const byCategory = await transactionService.getSpendingByCategory(idString);

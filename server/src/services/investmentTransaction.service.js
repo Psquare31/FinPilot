@@ -1,5 +1,4 @@
 import BaseService from "./base.service.js";
-import ApiError from "../utils/ApiError.js";
 import toObjectId from "../utils/toObjectId.js";
 
 import InvestmentTransaction from "../models/InvestmentTransaction.js";

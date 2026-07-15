@@ -3,7 +3,6 @@ import { z } from "zod";
 import {
     GOAL_TYPES,
     GOAL_STATUS,
-    USER_CURRENCIES,
 } from "../constants/index.js";
 
 import {

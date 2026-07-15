@@ -12,15 +12,11 @@ import mongoose from "mongoose";
 import {
   makeUser,
   makeWorkspace,
-  makeCategory,
-  makeAccount,
   makeTransaction,
   makeBudget,
   makeWorkspaceFixture,
 } from "./helpers/factories.js";
 
-import Transaction from "../models/Transaction.js";
-import Budget from "../models/Budget.js";
 import Goal from "../models/Goal.js";
 import WorkspaceMember from "../models/WorkspaceMember.js";
 

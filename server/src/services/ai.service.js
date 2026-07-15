@@ -1,5 +1,4 @@
 import BaseService from "./base.service.js";
-import ApiError from "../utils/ApiError.js";
 
 import AIInteraction from "../models/AIInteraction.js";
 

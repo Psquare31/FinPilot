@@ -96,7 +96,7 @@ const run = async () => {
   // `weight` drives the generator's distribution but is not part of the
   // Category schema; strip it rather than relying on strict-mode to drop it.
   await Category.insertMany(
-    base.categories.map(({ weight, ...category }) => category)
+    base.categories.map(({ weight: _weight, ...category }) => category)
   );
 
   await Account.insertMany(base.accounts);

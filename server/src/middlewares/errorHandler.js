@@ -1,6 +1,9 @@
 import ApiError from "../utils/ApiError.js";
 
-const errorHandler = (err, req, res, next) => {
+// `_next` is unused but must stay: Express identifies error-handling
+// middleware by its four-argument arity, so dropping the parameter would
+// silently turn this into ordinary middleware and stop it catching errors.
+const errorHandler = (err, req, res, _next) => {
     let error = err;
 
     // Convert unknown errors into ApiError
