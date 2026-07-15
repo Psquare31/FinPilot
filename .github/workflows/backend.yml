@@ -14,6 +14,45 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # The suite talks to a real MongoDB rather than mocks: the defects it
+    # guards against (aggregation casting, $group field paths, index-backed
+    # queries) only reproduce against a real server.
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+      # @upstash/redis speaks REST, not the Redis wire protocol, and the rate
+      # limiter fails closed on a Redis error — so the suite needs a real
+      # Upstash-compatible endpoint, not a stub.
+      redis-http:
+        image: hiett/serverless-redis-http:latest
+        ports:
+          - 8079:80
+        env:
+          SRH_MODE: env
+          SRH_TOKEN: test_token
+          SRH_CONNECTION_STRING: redis://redis:6379
+
+    env:
+      MONGO_URI_TEST: mongodb://127.0.0.1:27017/finpilot_test
+      UPSTASH_REDIS_REST_URL: http://127.0.0.1:8079
+      UPSTASH_REDIS_REST_TOKEN: test_token
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -22,12 +61,30 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
 
+      # `npm ci` fails on a lockfile that has drifted from package.json;
+      # `npm install` would silently paper over it.
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
+        working-directory: server
 
+      - name: Lint
+        run: npm run lint
+        working-directory: server
+
+      # Previously this ran `npm test` at the repository root, where no `test`
+      # script exists — so the job could never have passed. It also ran without
+      # a database, which every meaningful test here needs.
       - name: Run Tests
         run: npm test
+        working-directory: server
 
-      - name: Build Check
-        run: npm run start -- --help || true
+      - name: Upload Coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: server/coverage/
+          if-no-files-found: ignore

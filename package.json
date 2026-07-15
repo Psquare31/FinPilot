@@ -6,7 +6,10 @@
   "license": "MIT",
   "scripts": {
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "npm --prefix server test",
+    "test:server": "npm --prefix server test",
+    "lint:server": "npm --prefix server run lint"
   },
   "repository": {
     "type": "git",
@@ -21,7 +24,7 @@
     "mongodb",
     "nodejs"
   ],
-  "author": "Mayank Nishant",
+  "author": "Pranav Prajyot",
   "devDependencies": {
     "prettier": "^3.9.4"
   }
