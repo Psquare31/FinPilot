@@ -1,4 +1,4 @@
-import redis from "../config/redis/connectRedis.js";
+import redis from "../../config/redis/connectRedis.js";
 
 class CacheService {
   // Get cached value

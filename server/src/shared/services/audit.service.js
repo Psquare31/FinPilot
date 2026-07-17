@@ -1,6 +1,6 @@
 import BaseService from "./base.service.js";
 
-import AuditLog from "../models/AuditLog.js";
+import AuditLog from "../../models/AuditLog.js";
 
 class AuditLogService extends BaseService {
   constructor() {

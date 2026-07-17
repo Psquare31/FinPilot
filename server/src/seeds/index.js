@@ -1,14 +1,17 @@
 import connectDB from "../config/database/connectDB.js";
 
+// Eight of these were imported under plural names that do not exist on disk
+// (workspaces/categories/accounts/transactions/budgets/goals/investments/
+// debts), so `npm run seed` failed at import and could never have run.
 import seedUsers from "./users.seed.js";
-import seedWorkspaces from "./workspaces.seed.js";
-import seedCategories from "./categories.seed.js";
-import seedAccounts from "./accounts.seed.js";
-import seedTransactions from "./transactions.seed.js";
-import seedBudgets from "./budgets.seed.js";
-import seedGoals from "./goals.seed.js";
-import seedInvestments from "./investments.seed.js";
-import seedDebts from "./debts.seed.js";
+import seedWorkspaces from "./workspace.seed.js";
+import seedCategories from "./category.seed.js";
+import seedAccounts from "./account.seed.js";
+import seedTransactions from "./transaction.seed.js";
+import seedBudgets from "./budget.seed.js";
+import seedGoals from "./goal.seed.js";
+import seedInvestments from "./investment.seed.js";
+import seedDebts from "./debt.seed.js";
 import seedNotifications from "./notifications.seed.js";
 
 const seed = async () => {

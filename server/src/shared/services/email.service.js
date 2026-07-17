@@ -1,5 +1,5 @@
-import transporter from "../config/mail/connectMail.js";
-import env from "../config/env/index.js";
+import transporter from "../../config/mail/connectMail.js";
+import env from "../../config/env/index.js";
 
 class EmailService {
   // Send a generic email

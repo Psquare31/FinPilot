@@ -237,22 +237,20 @@ userSchema.virtual("isLocked").get(function () {
 // Middleware
 // =======================
 
-userSchema.pre("save", async function (next) {
+// Mongoose 9 removed callback-style document middleware: `next` is never
+// passed, so calling it throws "next is not a function" and no user — nor any
+// document saved in the same operation — can be written. An async hook signals
+// completion by returning and failure by throwing.
+userSchema.pre("save", async function () {
   // Skip hashing if password doesn't exist (Google, Apple, Microsoft users)
-  if (!this.password) return next();
+  if (!this.password) return;
 
   // Skip if password wasn't modified
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return;
 
-  try {
-    this.password = await bcrypt.hash(this.password, 12);
+  this.password = await bcrypt.hash(this.password, 12);
 
-    this.passwordChangedAt = new Date(Date.now() - 1000);
-
-    next();
-  } catch (error) {
-    next(error);
-  }
+  this.passwordChangedAt = new Date(Date.now() - 1000);
 });
 
 // =======================

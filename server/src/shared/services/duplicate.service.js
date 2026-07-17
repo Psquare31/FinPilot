@@ -1,6 +1,6 @@
 import { exactMatchRegex } from "../utils/regex.js";
 
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../../utils/ApiError.js";
 
 class DuplicateService {
     // ======================================================

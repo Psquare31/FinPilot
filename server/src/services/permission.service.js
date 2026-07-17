@@ -1,7 +1,7 @@
-import Workspace from "../../models/Workspace.js";
-import WorkspaceMember from "../../models/WorkspaceMember.js";
+import Workspace from "../models/Workspace.js";
+import WorkspaceMember from "../models/WorkspaceMember.js";
 
-import ApiError from "../../utils/ApiError.js";
+import ApiError from "../utils/ApiError.js";
 
 import {
     WORKSPACE_ROLES,
