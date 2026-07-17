@@ -74,6 +74,12 @@ jobs:
         run: npm run lint
         working-directory: server
 
+      # Catches import faults that a case-insensitive filesystem hides, so they
+      # fail here with a full list rather than one-per-run on Linux only.
+      - name: Check imports
+        run: npm run check:imports
+        working-directory: server
+
       # Previously this ran `npm test` at the repository root, where no `test`
       # script exists — so the job could never have passed. It also ran without
       # a database, which every meaningful test here needs.

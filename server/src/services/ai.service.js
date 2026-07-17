@@ -1,10 +1,10 @@
 import BaseService from "./base.service.js";
 
-import AIInteraction from "../models/AIInteraction.js";
+import AiInteraction from "../models/AiInteraction.js";
 
 class AIInteractionService extends BaseService {
   constructor() {
-    super(AIInteraction);
+    super(AiInteraction);
   }
 
   // Create AI Interaction
