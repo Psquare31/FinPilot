@@ -28,9 +28,9 @@ const workspaceSchema = new Schema(
       maxlength: 500,
     },
 
+    // Indexed (uniquely) in the Indexes section below.
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -46,7 +46,6 @@ const workspaceSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
 
     currency: {

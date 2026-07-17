@@ -23,11 +23,11 @@ const aiInteractionSchema = new Schema(
       index: true,
     },
 
+    // Indexed in the Indexes section below.
     feature: {
       type: String,
       enum: AI_FEATURES,
       required: true,
-      index: true,
     },
 
     model: {

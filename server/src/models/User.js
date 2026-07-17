@@ -41,11 +41,14 @@ const avatarSchema = new Schema(
 const userSchema = new Schema(
   {
     // Clerk User ID
+    //
+    // Indexed uniquely and sparsely in the Indexes section below. None of
+    // `index`, `unique` or `sparse` may appear here as well: each of them
+    // declares an index on the field, so a second definition of the same key
+    // is emitted — which Mongoose warns about and MongoDB rejects outright
+    // when the options differ.
     clerkId: {
       type: String,
-      unique: true,
-      sparse: true,
-      index: true,
       trim: true,
     },
 
@@ -77,7 +80,6 @@ const userSchema = new Schema(
     email: {
       type: String,
       required: [true, "Email is required"],
-      unique: true,
       lowercase: true,
       trim: true,
       match: [

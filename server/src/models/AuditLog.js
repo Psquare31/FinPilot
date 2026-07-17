@@ -23,11 +23,11 @@ const auditLogSchema = new Schema(
       index: true,
     },
 
+    // Indexed in the Indexes section below.
     action: {
       type: String,
       enum: AUDIT_ACTIONS,
       required: true,
-      index: true,
     },
 
     resource: {
