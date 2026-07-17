@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T20:23:07.570Z",
+  "generatedAt": "2026-07-17T11:22:20.143Z",
   "uri": "mongodb://127.0.0.1:27018/finpilot_bench",
   "options": {
     "transactions": 1000,
@@ -40,8 +40,8 @@
     }
   },
   "timings": {
-    "insertSeconds": 0.28,
-    "insertDocsPerSecond": 3571,
-    "indexBuildSeconds": 0.27
+    "insertSeconds": 0.3,
+    "insertDocsPerSecond": 3344,
+    "indexBuildSeconds": 0.23
   }
 }

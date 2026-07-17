@@ -1,0 +1,231 @@
+{
+  "experiment": "E3 — index coverage: compound (filter+sort) vs filter-only vs none",
+  "generatedAt": "2026-07-17T11:22:49.401Z",
+  "query": "find({ workspace, isDeleted: false }).sort({ transactionDate: -1 }).limit(20)",
+  "index": "workspace_1_transactionDate_-1",
+  "environment": {
+    "node": "v22.14.0",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": 28
+  },
+  "options": {
+    "scales": [
+      1000,
+      10000,
+      100000
+    ],
+    "iterations": 20,
+    "warmup": 3,
+    "seed": 42
+  },
+  "results": [
+    {
+      "scale": 1000,
+      "variants": {
+        "compound": {
+          "stage": "IXSCAN",
+          "indexName": "workspace_1_transactionDate_-1",
+          "stageChain": "LIMIT <- FETCH <- IXSCAN",
+          "hasBlockingSort": false,
+          "sortMemoryBytes": 0,
+          "nReturned": 20,
+          "totalDocsExamined": 20,
+          "totalKeysExamined": 20,
+          "executionTimeMillis": 0,
+          "samples": 20,
+          "meanMs": 2.274,
+          "stdDevMs": 0.523,
+          "minMs": 1.649,
+          "p50Ms": 2.135,
+          "p95Ms": 3.402,
+          "p99Ms": 3.562,
+          "maxMs": 3.562
+        },
+        "filterOnly": {
+          "stage": "IXSCAN",
+          "indexName": "workspace_1_isDeleted_1",
+          "stageChain": "SORT <- FETCH <- IXSCAN",
+          "hasBlockingSort": true,
+          "sortMemoryBytes": 17675,
+          "nReturned": 20,
+          "totalDocsExamined": 327,
+          "totalKeysExamined": 327,
+          "executionTimeMillis": 2,
+          "samples": 20,
+          "meanMs": 2.328,
+          "stdDevMs": 0.432,
+          "minMs": 1.858,
+          "p50Ms": 2.191,
+          "p95Ms": 3.153,
+          "p99Ms": 3.455,
+          "maxMs": 3.455
+        },
+        "none": {
+          "stage": "COLLSCAN",
+          "indexName": null,
+          "stageChain": "SORT <- COLLSCAN",
+          "hasBlockingSort": true,
+          "sortMemoryBytes": 17675,
+          "nReturned": 20,
+          "totalDocsExamined": 1000,
+          "totalKeysExamined": 0,
+          "executionTimeMillis": 0,
+          "samples": 20,
+          "meanMs": 2.115,
+          "stdDevMs": 0.099,
+          "minMs": 1.992,
+          "p50Ms": 2.099,
+          "p95Ms": 2.291,
+          "p99Ms": 2.321,
+          "maxMs": 2.321
+        }
+      },
+      "allVariantsAgree": true,
+      "ratios": {
+        "filterOnlyDocsExaminedVsCompound": 16.4,
+        "noneDocsExaminedVsCompound": 50,
+        "filterOnlyLatencyVsCompound": 1.03,
+        "noneLatencyVsCompound": 0.98
+      }
+    },
+    {
+      "scale": 10000,
+      "variants": {
+        "compound": {
+          "stage": "IXSCAN",
+          "indexName": "workspace_1_transactionDate_-1",
+          "stageChain": "LIMIT <- FETCH <- IXSCAN",
+          "hasBlockingSort": false,
+          "sortMemoryBytes": 0,
+          "nReturned": 20,
+          "totalDocsExamined": 20,
+          "totalKeysExamined": 20,
+          "executionTimeMillis": 1,
+          "samples": 20,
+          "meanMs": 7.264,
+          "stdDevMs": 1.76,
+          "minMs": 4.934,
+          "p50Ms": 6.78,
+          "p95Ms": 10.054,
+          "p99Ms": 10.769,
+          "maxMs": 10.769
+        },
+        "filterOnly": {
+          "stage": "IXSCAN",
+          "indexName": "workspace_1_isDeleted_1",
+          "stageChain": "SORT <- FETCH <- IXSCAN",
+          "hasBlockingSort": true,
+          "sortMemoryBytes": 17645,
+          "nReturned": 20,
+          "totalDocsExamined": 3259,
+          "totalKeysExamined": 3259,
+          "executionTimeMillis": 21,
+          "samples": 20,
+          "meanMs": 8.428,
+          "stdDevMs": 1.047,
+          "minMs": 6.939,
+          "p50Ms": 8.192,
+          "p95Ms": 10.408,
+          "p99Ms": 11.136,
+          "maxMs": 11.136
+        },
+        "none": {
+          "stage": "COLLSCAN",
+          "indexName": null,
+          "stageChain": "SORT <- COLLSCAN",
+          "hasBlockingSort": true,
+          "sortMemoryBytes": 17645,
+          "nReturned": 20,
+          "totalDocsExamined": 10000,
+          "totalKeysExamined": 0,
+          "executionTimeMillis": 5,
+          "samples": 20,
+          "meanMs": 10.064,
+          "stdDevMs": 1.208,
+          "minMs": 9.063,
+          "p50Ms": 9.676,
+          "p95Ms": 11.941,
+          "p99Ms": 14.306,
+          "maxMs": 14.306
+        }
+      },
+      "allVariantsAgree": true,
+      "ratios": {
+        "filterOnlyDocsExaminedVsCompound": 162.9,
+        "noneDocsExaminedVsCompound": 500,
+        "filterOnlyLatencyVsCompound": 1.21,
+        "noneLatencyVsCompound": 1.43
+      }
+    },
+    {
+      "scale": 100000,
+      "variants": {
+        "compound": {
+          "stage": "IXSCAN",
+          "indexName": "workspace_1_transactionDate_-1",
+          "stageChain": "LIMIT <- FETCH <- IXSCAN",
+          "hasBlockingSort": false,
+          "sortMemoryBytes": 0,
+          "nReturned": 20,
+          "totalDocsExamined": 20,
+          "totalKeysExamined": 20,
+          "executionTimeMillis": 1,
+          "samples": 20,
+          "meanMs": 3.165,
+          "stdDevMs": 4.058,
+          "minMs": 1.404,
+          "p50Ms": 2.077,
+          "p95Ms": 3.478,
+          "p99Ms": 20.21,
+          "maxMs": 20.21
+        },
+        "filterOnly": {
+          "stage": "IXSCAN",
+          "indexName": "workspace_1_isDeleted_1",
+          "stageChain": "SORT <- FETCH <- IXSCAN",
+          "hasBlockingSort": true,
+          "sortMemoryBytes": 17691,
+          "nReturned": 20,
+          "totalDocsExamined": 32659,
+          "totalKeysExamined": 32659,
+          "executionTimeMillis": 199,
+          "samples": 20,
+          "meanMs": 27.536,
+          "stdDevMs": 2.386,
+          "minMs": 24.237,
+          "p50Ms": 26.227,
+          "p95Ms": 31.247,
+          "p99Ms": 32.74,
+          "maxMs": 32.74
+        },
+        "none": {
+          "stage": "COLLSCAN",
+          "indexName": null,
+          "stageChain": "SORT <- COLLSCAN",
+          "hasBlockingSort": true,
+          "sortMemoryBytes": 17691,
+          "nReturned": 20,
+          "totalDocsExamined": 100000,
+          "totalKeysExamined": 0,
+          "executionTimeMillis": 53,
+          "samples": 20,
+          "meanMs": 43.722,
+          "stdDevMs": 2.86,
+          "minMs": 40.538,
+          "p50Ms": 42.514,
+          "p95Ms": 50.134,
+          "p99Ms": 50.172,
+          "maxMs": 50.172
+        }
+      },
+      "allVariantsAgree": true,
+      "ratios": {
+        "filterOnlyDocsExaminedVsCompound": 1633,
+        "noneDocsExaminedVsCompound": 5000,
+        "filterOnlyLatencyVsCompound": 12.63,
+        "noneLatencyVsCompound": 20.47
+      }
+    }
+  ]
+}
