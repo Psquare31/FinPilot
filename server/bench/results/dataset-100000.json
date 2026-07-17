@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-17T11:22:46.114Z",
+  "generatedAt": "2026-07-17T11:34:36.757Z",
   "uri": "mongodb://127.0.0.1:27018/finpilot_bench",
   "options": {
     "transactions": 100000,
@@ -23,11 +23,11 @@
   },
   "storage": {
     "dataSizeBytes": 85210949,
-    "storageSizeBytes": 7749632,
-    "totalIndexSizeBytes": 8331264,
+    "storageSizeBytes": 7135232,
+    "totalIndexSizeBytes": 6254592,
     "avgDocumentBytes": 852,
     "indexSizesBytes": {
-      "_id_": 2625536,
+      "_id_": 548864,
       "workspace_1": 532480,
       "workspace_1_transactionDate_-1": 1167360,
       "workspace_1_account_1": 565248,
@@ -40,8 +40,8 @@
     }
   },
   "timings": {
-    "insertSeconds": 19.78,
-    "insertDocsPerSecond": 5056,
-    "indexBuildSeconds": 1.31
+    "insertSeconds": 17.38,
+    "insertDocsPerSecond": 5753,
+    "indexBuildSeconds": 1.16
   }
 }

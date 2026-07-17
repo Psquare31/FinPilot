@@ -1,0 +1,207 @@
+{
+  "experiment": "E4 — offset vs cursor pagination by depth",
+  "generatedAt": "2026-07-17T11:34:46.724Z",
+  "pageSize": 20,
+  "sort": "transactionDate desc, _id desc",
+  "workspaceMatchedDocs": 32659,
+  "countPerPage": {
+    "samples": 15,
+    "meanMs": 3.952,
+    "stdDevMs": 0.774,
+    "minMs": 3.313,
+    "p50Ms": 3.723,
+    "p95Ms": 6.029,
+    "p99Ms": 6.029,
+    "maxMs": 6.029
+  },
+  "environment": {
+    "node": "v22.14.0",
+    "platform": "win32",
+    "arch": "x64",
+    "cpus": 28
+  },
+  "options": {
+    "scale": 100000,
+    "pages": [
+      1,
+      10,
+      100,
+      500,
+      1000,
+      1600
+    ],
+    "iterations": 15,
+    "warmup": 3,
+    "seed": 42
+  },
+  "results": [
+    {
+      "page": 1,
+      "skipped": 0,
+      "agree": true,
+      "offset": {
+        "samples": 15,
+        "meanMs": 2.639,
+        "stdDevMs": 1.755,
+        "minMs": 1.305,
+        "p50Ms": 2.282,
+        "p95Ms": 8.623,
+        "p99Ms": 8.623,
+        "maxMs": 8.623,
+        "totalDocsExamined": 20
+      },
+      "cursor": {
+        "samples": 15,
+        "meanMs": 1.495,
+        "stdDevMs": 0.295,
+        "minMs": 1.249,
+        "p50Ms": 1.414,
+        "p95Ms": 2.503,
+        "p99Ms": 2.503,
+        "maxMs": 2.503,
+        "totalDocsExamined": 20
+      },
+      "ratio": 1.61
+    },
+    {
+      "page": 10,
+      "skipped": 180,
+      "agree": true,
+      "offset": {
+        "samples": 15,
+        "meanMs": 1.939,
+        "stdDevMs": 0.953,
+        "minMs": 1.419,
+        "p50Ms": 1.575,
+        "p95Ms": 4.319,
+        "p99Ms": 4.319,
+        "maxMs": 4.319,
+        "totalDocsExamined": 203
+      },
+      "cursor": {
+        "samples": 15,
+        "meanMs": 1.438,
+        "stdDevMs": 0.088,
+        "minMs": 1.291,
+        "p50Ms": 1.426,
+        "p95Ms": 1.597,
+        "p99Ms": 1.597,
+        "maxMs": 1.597,
+        "totalDocsExamined": 21
+      },
+      "ratio": 1.1
+    },
+    {
+      "page": 100,
+      "skipped": 1980,
+      "agree": true,
+      "offset": {
+        "samples": 15,
+        "meanMs": 19.859,
+        "stdDevMs": 29.648,
+        "minMs": 3.742,
+        "p50Ms": 5.085,
+        "p95Ms": 105.267,
+        "p99Ms": 105.267,
+        "maxMs": 105.267,
+        "totalDocsExamined": 2040
+      },
+      "cursor": {
+        "samples": 15,
+        "meanMs": 3.558,
+        "stdDevMs": 2.151,
+        "minMs": 2.041,
+        "p50Ms": 2.61,
+        "p95Ms": 9.451,
+        "p99Ms": 9.451,
+        "maxMs": 9.451,
+        "totalDocsExamined": 20
+      },
+      "ratio": 1.95
+    },
+    {
+      "page": 500,
+      "skipped": 9980,
+      "agree": true,
+      "offset": {
+        "samples": 15,
+        "meanMs": 15.433,
+        "stdDevMs": 1.422,
+        "minMs": 13.927,
+        "p50Ms": 14.992,
+        "p95Ms": 18.387,
+        "p99Ms": 18.387,
+        "maxMs": 18.387,
+        "totalDocsExamined": 10216
+      },
+      "cursor": {
+        "samples": 15,
+        "meanMs": 2.228,
+        "stdDevMs": 1.214,
+        "minMs": 1.341,
+        "p50Ms": 1.584,
+        "p95Ms": 4.504,
+        "p99Ms": 4.504,
+        "maxMs": 4.504,
+        "totalDocsExamined": 20
+      },
+      "ratio": 9.46
+    },
+    {
+      "page": 1000,
+      "skipped": 19980,
+      "agree": true,
+      "offset": {
+        "samples": 15,
+        "meanMs": 64.42,
+        "stdDevMs": 90.204,
+        "minMs": 25.517,
+        "p50Ms": 29.884,
+        "p95Ms": 291.708,
+        "p99Ms": 291.708,
+        "maxMs": 291.708,
+        "totalDocsExamined": 20421
+      },
+      "cursor": {
+        "samples": 15,
+        "meanMs": 1.721,
+        "stdDevMs": 0.137,
+        "minMs": 1.47,
+        "p50Ms": 1.719,
+        "p95Ms": 1.99,
+        "p99Ms": 1.99,
+        "maxMs": 1.99,
+        "totalDocsExamined": 21
+      },
+      "ratio": 17.38
+    },
+    {
+      "page": 1600,
+      "skipped": 31980,
+      "agree": true,
+      "offset": {
+        "samples": 15,
+        "meanMs": 52.697,
+        "stdDevMs": 32.424,
+        "minMs": 40.247,
+        "p50Ms": 41.922,
+        "p95Ms": 165.859,
+        "p99Ms": 165.859,
+        "maxMs": 165.859,
+        "totalDocsExamined": 32659
+      },
+      "cursor": {
+        "samples": 15,
+        "meanMs": 1.223,
+        "stdDevMs": 0.075,
+        "minMs": 1.101,
+        "p50Ms": 1.236,
+        "p95Ms": 1.397,
+        "p99Ms": 1.397,
+        "maxMs": 1.397,
+        "totalDocsExamined": 21
+      },
+      "ratio": 33.92
+    }
+  ]
+}
