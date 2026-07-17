@@ -34,3 +34,16 @@ process.env.UPSTASH_REDIS_REST_URL =
 
 process.env.UPSTASH_REDIS_REST_TOKEN =
   process.env.UPSTASH_REDIS_REST_TOKEN || "test_token";
+
+// Clerk is validated as required at env load, and clerkMiddleware() — mounted
+// globally in app.js — additionally parses the publishable key on every
+// request, rejecting a malformed one with 500 "Publishable key not valid."
+// before any route runs. So the dummy has to be format-valid: pk_test_ plus
+// base64 of "<frontend-api-host>$". It resolves to test.clerk.accounts.dev and
+// is never contacted; the suite exercises services directly.
+process.env.CLERK_PUBLISHABLE_KEY =
+  process.env.CLERK_PUBLISHABLE_KEY ||
+  "pk_test_dGVzdC5jbGVyay5hY2NvdW50cy5kZXYk";
+
+process.env.CLERK_SECRET_KEY =
+  process.env.CLERK_SECRET_KEY || "sk_test_dummy";

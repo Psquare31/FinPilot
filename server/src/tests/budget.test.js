@@ -8,7 +8,7 @@
 // the early-return never fired and every budget produced an alert containing
 // NaN on every run.
 
-import budgetService from "../services/budget.service.js";
+import budgetService from "../modules/budgets/budget.service.js";
 
 import {
   makeWorkspaceFixture,

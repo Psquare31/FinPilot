@@ -9,7 +9,7 @@
 // A test asserting only "responds 200" or "returns a number" would have passed
 // against the broken code. These assert values.
 
-import dashboardService from "../services/dashboard.service.js";
+import dashboardService from "../modules/analytics/dashboard.service.js";
 
 import {
   makeWorkspaceFixture,

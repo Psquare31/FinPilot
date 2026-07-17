@@ -1,6 +1,7 @@
 import BaseService from "../../shared/services/base.service.js";
 import ApiError from "../../utils/ApiError.js";
 import withTransaction from "../../utils/withTransaction.js";
+import toObjectId from "../../utils/toObjectId.js";
 
 import Transaction from "../../models/Transaction.js";
 import Account from "../../models/Account.js";
@@ -453,7 +454,8 @@ class TransactionService extends BaseService {
     const summary = await Transaction.aggregate([
       {
         $match: {
-          workspace,
+          workspace: toObjectId(workspace, "workspace"),
+          isDeleted: false,
           transactionDate: {
             $gte: startDate,
             $lt: endDate,
@@ -464,7 +466,7 @@ class TransactionService extends BaseService {
         $group: {
           _id: "$type",
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },
@@ -488,7 +490,8 @@ class TransactionService extends BaseService {
     return Transaction.aggregate([
       {
         $match: {
-          workspace,
+          workspace: toObjectId(workspace, "workspace"),
+          isDeleted: false,
           transactionDate: {
             $gte: new Date(startDate),
             $lte: new Date(endDate),
@@ -540,14 +543,15 @@ class TransactionService extends BaseService {
     const result = await Transaction.aggregate([
       {
         $match: {
-          workspace,
+          workspace: toObjectId(workspace, "workspace"),
+          isDeleted: false,
         },
       },
       {
         $group: {
           _id: "$type",
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },
@@ -566,7 +570,8 @@ class TransactionService extends BaseService {
     return Transaction.aggregate([
       {
         $match: {
-          workspace,
+          workspace: toObjectId(workspace, "workspace"),
+          isDeleted: false,
           type: "expense",
         },
       },
@@ -585,7 +590,7 @@ class TransactionService extends BaseService {
         $group: {
           _id: "$category.name",
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },
@@ -602,7 +607,8 @@ class TransactionService extends BaseService {
     return Transaction.aggregate([
       {
         $match: {
-          workspace,
+          workspace: toObjectId(workspace, "workspace"),
+          isDeleted: false,
           type: "expense",
         },
       },
@@ -610,7 +616,7 @@ class TransactionService extends BaseService {
         $group: {
           _id: "$category",
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },
@@ -646,7 +652,8 @@ class TransactionService extends BaseService {
     return Transaction.aggregate([
       {
         $match: {
-          workspace,
+          workspace: toObjectId(workspace, "workspace"),
+          isDeleted: false,
           type: "expense",
         },
       },
@@ -654,7 +661,7 @@ class TransactionService extends BaseService {
         $group: {
           _id: "$account",
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },
@@ -705,11 +712,13 @@ class TransactionService extends BaseService {
       await Promise.all([
         Transaction.countDocuments({
           workspace,
+          isDeleted: false,
         }),
         Transaction.aggregate([
           {
             $match: {
-              workspace,
+              workspace: toObjectId(workspace, "workspace"),
+              isDeleted: false,
               type: "income",
             },
           },
@@ -717,7 +726,7 @@ class TransactionService extends BaseService {
             $group: {
               _id: null,
               total: {
-                $sum: "$amount",
+                $sum: "$money.amount",
               },
             },
           },
@@ -725,7 +734,8 @@ class TransactionService extends BaseService {
         Transaction.aggregate([
           {
             $match: {
-              workspace,
+              workspace: toObjectId(workspace, "workspace"),
+              isDeleted: false,
               type: "expense",
             },
           },
@@ -733,7 +743,7 @@ class TransactionService extends BaseService {
             $group: {
               _id: null,
               total: {
-                $sum: "$amount",
+                $sum: "$money.amount",
               },
             },
           },

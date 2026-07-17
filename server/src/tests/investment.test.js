@@ -8,7 +8,7 @@
 //   - the oversell guard compared `undefined < quantity`, always false, so a
 //     user could sell units they did not hold
 
-import investmentService from "../services/investment.service.js";
+import investmentService from "../modules/investments/investment.service.js";
 
 import InvestmentTransaction from "../models/InvestmentTransaction.js";
 

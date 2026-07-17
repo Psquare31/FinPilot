@@ -4,7 +4,7 @@
 // $matched a string workspace id, so every statistic the API reported was
 // zero. These tests assert concrete totals against known fixtures.
 
-import transactionService from "../services/transaction.service.js";
+import transactionService from "../modules/transactions/transaction.service.js";
 
 import { makeWorkspaceFixture, makeTransaction } from "./helpers/factories.js";
 

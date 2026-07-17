@@ -5,8 +5,10 @@ import Goal from "../../models/Goal.js";
 import Debt from "../../models/Debt.js";
 import Investment from "../../models/Investment.js";
 
-import cacheService from "./cache.service.js";
-import { REDIS_KEYS } from "../config/redis/redisKeys.js";
+import cacheService from "../../shared/services/cache.service.js";
+import { REDIS_KEYS } from "../../config/redis/redisKeys.js";
+
+import toObjectId from "../../utils/toObjectId.js";
 
 class DashboardService {
   // Get complete dashboard with Redis caching
@@ -81,7 +83,9 @@ class DashboardService {
     const summary = await Transaction.aggregate([
       {
         $match: {
-          workspace,
+          // aggregate() does not cast against the schema the way find() does,
+          // so a string id here matches zero documents silently.
+          workspace: toObjectId(workspace, "workspace"),
           isDeleted: false,
         },
       },
@@ -89,7 +93,7 @@ class DashboardService {
         $group: {
           _id: "$type",
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },
@@ -163,9 +167,12 @@ class DashboardService {
       isDeleted: false,
     }).lean();
 
+    // `totalUnits` does not exist on the schema (it is `quantity`) and
+    // `currentPrice` is a Money subdocument, not a number — so this previously
+    // evaluated `undefined * {…}` and reported NaN.
     const totalCurrentValue = investments.reduce(
       (sum, investment) =>
-        sum + investment.totalUnits * investment.currentPrice,
+        sum + investment.quantity * investment.currentPrice.amount,
       0
     );
 

@@ -1,5 +1,5 @@
 import BaseService from "../../shared/services/base.service.js";
-import ApiError from "../../utils/ApiError.js";
+import toObjectId from "../../utils/toObjectId.js";
 
 import Report from "../../models/Report.js";
 import Transaction from "../../models/Transaction.js";
@@ -161,7 +161,7 @@ class ReportService extends BaseService {
     const summary = await Transaction.aggregate([
       {
         $match: {
-          workspace,
+          workspace: toObjectId(workspace, "workspace"),
           isDeleted: false,
         },
       },
@@ -169,7 +169,7 @@ class ReportService extends BaseService {
         $group: {
           _id: "$type",
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },

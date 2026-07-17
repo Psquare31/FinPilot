@@ -109,6 +109,9 @@ class BudgetService extends BaseService {
           workspace: budget.workspace,
           category: budget.category,
           type: "expense",
+          // Soft-deleted transactions must not count towards spend. Every
+          // other read path filters them; this pipeline did not.
+          isDeleted: false,
           transactionDate: {
             $gte: budget.startDate,
             $lte: budget.endDate,
@@ -119,7 +122,7 @@ class BudgetService extends BaseService {
         $group: {
           _id: null,
           total: {
-            $sum: "$amount",
+            $sum: "$money.amount",
           },
         },
       },
@@ -127,19 +130,24 @@ class BudgetService extends BaseService {
 
     const totalSpent = spent[0]?.total ?? 0;
 
-    const remaining = budget.amount - totalSpent;
+    // The schema stores this as a Money subdocument (`budgetAmount.amount`).
+    // Reading `budget.amount` yielded undefined, which made `remaining` NaN,
+    // pinned `percentage` at 0 and left `exceeded` permanently false.
+    const budgetAmount = budget.budgetAmount.amount;
+
+    const remaining = budgetAmount - totalSpent;
 
     const percentage =
-      budget.amount > 0
-        ? Number(((totalSpent / budget.amount) * 100).toFixed(2))
+      budgetAmount > 0
+        ? Number(((totalSpent / budgetAmount) * 100).toFixed(2))
         : 0;
 
     return {
-      budgetAmount: budget.amount,
+      budgetAmount,
       spent: totalSpent,
       remaining,
       percentage,
-      exceeded: totalSpent > budget.amount,
+      exceeded: totalSpent > budgetAmount,
     };
   }
 
