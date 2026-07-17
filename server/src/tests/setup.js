@@ -19,6 +19,12 @@ beforeAll(async () => {
 
   assertDisposable(uri);
 
+  // Match src/config/database/connectDB.js. Without this the suite runs under
+  // different query semantics than production: strictQuery governs whether a
+  // filter on an undeclared field is silently stripped (true) or passed to
+  // MongoDB and matched literally (false), which changes what a query returns.
+  mongoose.set("strictQuery", true);
+
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
 
   // Build indexes up-front so unique constraints are actually enforced during

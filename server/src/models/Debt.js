@@ -102,6 +102,25 @@ const debtSchema = new Schema(
       maxlength: 1000,
     },
 
+    // The service layer already filters and writes these, and every sibling
+    // model declares them — but they were missing here, so strictQuery stripped
+    // the conditions from every query and archiveDebt/restoreDebt wrote fields
+    // that were silently discarded.
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
     audit: {
       type: auditSchema,
       required: true,

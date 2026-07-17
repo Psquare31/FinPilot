@@ -13,6 +13,7 @@ import Account from "../../models/Account.js";
 import Transaction from "../../models/Transaction.js";
 import Budget from "../../models/Budget.js";
 import Investment from "../../models/Investment.js";
+import Debt from "../../models/Debt.js";
 
 let counter = 0;
 
@@ -80,6 +81,24 @@ export const makeBudget = ({ workspace, category, user }, overrides = {}) =>
     budgetAmount: { amount: 10000, currency: "INR" },
     startDate: new Date("2026-03-01"),
     endDate: new Date("2026-03-31"),
+    audit: { createdBy: user._id },
+    ...overrides,
+  });
+
+export const makeDebt = ({ workspace, account, user }, overrides = {}) =>
+  Debt.create({
+    workspace: workspace._id,
+    account: account._id,
+    name: "Car Loan",
+    lender: "Test Bank",
+    type: "loan",
+    principalAmount: { amount: 100000, currency: "INR" },
+    outstandingAmount: { amount: 100000, currency: "INR" },
+    interestRate: 9.5,
+    emiAmount: { amount: 5000, currency: "INR" },
+    startDate: new Date("2026-01-01"),
+    endDate: new Date("2028-01-01"),
+    nextDueDate: new Date("2026-08-01"),
     audit: { createdBy: user._id },
     ...overrides,
   });
