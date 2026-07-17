@@ -47,3 +47,15 @@ process.env.CLERK_PUBLISHABLE_KEY =
 
 process.env.CLERK_SECRET_KEY =
   process.env.CLERK_SECRET_KEY || "sk_test_dummy";
+
+// SMTP is validated as required even though nothing in the suite sends mail.
+// These have to be set here rather than left to a developer's .env: CI has no
+// .env file at all, so anything not defaulted here is simply undefined and
+// env validation calls process.exit(1) at import time.
+process.env.SMTP_EMAIL = process.env.SMTP_EMAIL || "test@finpilot.local";
+process.env.SMTP_PASSWORD = process.env.SMTP_PASSWORD || "test-password";
+process.env.SMTP_HOST = process.env.SMTP_HOST || "127.0.0.1";
+process.env.SMTP_PORT = process.env.SMTP_PORT || "1025";
+process.env.SMTP_SECURE = process.env.SMTP_SECURE || "false";
+
+process.env.CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
