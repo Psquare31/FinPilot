@@ -195,8 +195,9 @@ class InvestmentService extends BaseService {
 
   // Update Current Price
   async updateCurrentPrice(id, currentPrice) {
+    // currentPrice is a Money subdocument; only the amount changes.
     return this.updateById(id, {
-      currentPrice,
+      "currentPrice.amount": currentPrice,
       lastPriceUpdatedAt: new Date(),
     });
   }

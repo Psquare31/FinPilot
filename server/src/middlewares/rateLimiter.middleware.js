@@ -40,7 +40,16 @@ const createLimiter = (
 
       next();
     } catch (error) {
-      next(error);
+      // A real 429 must propagate. But if the limiter itself fails
+      // (e.g. Upstash is unreachable during an offline demo), fail
+      // open rather than taking down every request behind a 500.
+      if (error instanceof ApiError && error.statusCode === 429) {
+        return next(error);
+      }
+
+      console.error("Rate limiter error (failing open):", error.message);
+
+      next();
     }
   };
 };

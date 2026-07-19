@@ -110,17 +110,30 @@ const envSchema = z.object({
   // Clerk
   // =====================================
 
+  // Clerk keys are optional so the app can run in DEMO_AUTH mode
+  // (live classroom demo) without a Clerk account. When DEMO_AUTH
+  // is off, authentication falls back to the real Clerk flow and
+  // these must be provided.
   CLERK_PUBLISHABLE_KEY: z
-    .string({
-      required_error: "CLERK_PUBLISHABLE_KEY is required.",
-    })
-    .min(1),
+    .string()
+    .trim()
+    .default(""),
 
   CLERK_SECRET_KEY: z
-    .string({
-      required_error: "CLERK_SECRET_KEY is required.",
-    })
-    .min(1),
+    .string()
+    .trim()
+    .default(""),
+
+  // =====================================
+  // Demo mode
+  // =====================================
+  // When "true", every request is authenticated as a fixed local
+  // demo user (created on demand in MongoDB) and Clerk is bypassed
+  // entirely. Intended for offline demos / evaluation only.
+  DEMO_AUTH: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
 });
 
 const parsed = envSchema.safeParse(process.env);

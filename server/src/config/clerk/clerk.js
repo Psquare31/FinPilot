@@ -10,10 +10,17 @@ import { requireAuth, createClerkClient } from "@clerk/express";
 
 import env from "../env/index.js";
 
-export const clerkClient = createClerkClient({
-    secretKey: env.CLERK_SECRET_KEY,
-});
+// In DEMO_AUTH mode there may be no Clerk secret key. Creating the
+// client (or mounting requireAuth) with an empty key would throw at
+// import time and take the whole server down, so guard on the key.
+const hasClerk = Boolean(env.CLERK_SECRET_KEY);
 
-export const requireClerkAuth = requireAuth();
+export const clerkClient = hasClerk
+    ? createClerkClient({ secretKey: env.CLERK_SECRET_KEY })
+    : null;
+
+export const requireClerkAuth = hasClerk
+    ? requireAuth()
+    : (req, res, next) => next();
 
 export default clerkClient;

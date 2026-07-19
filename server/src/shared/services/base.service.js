@@ -187,6 +187,45 @@ class BaseService {
     }
 
     // ======================================================
+    // Paginate documents.
+    //
+    // Several feature services (transactions, budgets, goals,
+    // investments) call `this.paginate(...)`, but the method
+    // only existed on BaseRepository — so every list endpoint
+    // threw "this.paginate is not a function". This restores it
+    // on the service layer with the same `{ data, pagination }`
+    // contract the repository returns.
+    // ======================================================
+
+    async paginate(filter = {}, options = {}) {
+        const page = Math.max(Number(options.page) || 1, 1);
+
+        const limit = Math.min(
+            Math.max(Number(options.limit) || 20, 1),
+            100
+        );
+
+        const [data, total] = await Promise.all([
+            this.find(filter, {
+                ...options,
+                skip: (page - 1) * limit,
+                limit,
+            }),
+            this.count(filter),
+        ]);
+
+        return {
+            data,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit),
+            },
+        };
+    }
+
+    // ======================================================
     // Check existence.
     // ======================================================
 

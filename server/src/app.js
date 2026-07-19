@@ -7,6 +7,8 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import { clerkMiddleware } from "@clerk/express";
 
+import { clerkClient } from "./config/clerk/clerk.js";
+
 import env from "./config/env/index.js";
 import { morganStream } from "./config/logger/logger.js";
 import swaggerSpec from "./config/swagger/swagger.js";
@@ -35,7 +37,11 @@ app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 app.use(cookieParser());
 
-app.use(clerkMiddleware());
+// Only mount Clerk when it is actually configured. In DEMO_AUTH mode
+// there are no Clerk keys and clerkMiddleware would warn/throw.
+if (clerkClient) {
+    app.use(clerkMiddleware());
+}
 
 app.use(compression());
 

@@ -94,9 +94,10 @@ class GoalService extends BaseService {
       throw new ApiError(404, "Goal not found.");
     }
 
-    goal.currentAmount += amount;
+    // currentAmount / targetAmount are Money subdocuments, not numbers.
+    goal.currentAmount.amount += amount;
 
-    if (goal.currentAmount >= goal.targetAmount) {
+    if (goal.currentAmount.amount >= goal.targetAmount.amount) {
       goal.status = "completed";
       goal.completedAt = new Date();
     }
@@ -114,16 +115,19 @@ class GoalService extends BaseService {
       throw new ApiError(404, "Goal not found.");
     }
 
-    if (goal.currentAmount < amount) {
+    if (goal.currentAmount.amount < amount) {
       throw new ApiError(
         400,
         "Withdrawal amount exceeds current savings."
       );
     }
 
-    goal.currentAmount -= amount;
+    goal.currentAmount.amount -= amount;
 
-    if (goal.status === "completed") {
+    if (
+      goal.status === "completed" &&
+      goal.currentAmount.amount < goal.targetAmount.amount
+    ) {
       goal.status = "active";
       goal.completedAt = null;
     }

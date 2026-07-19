@@ -39,7 +39,20 @@ class BaseRepository {
         return document;
     }
 
-    create(payload, options = {}) { return this.model.create(payload, options); }
+    // `Model.create(doc, options)` is a trap: when the first argument is not
+    // an array, Mongoose treats every remaining argument as another document
+    // to insert — so an `options = {}` default becomes a second, empty doc and
+    // fails validation ("Path `name`/`owner` is required"). Use the array form
+    // so the second argument is unambiguously the options object.
+    async create(payload, options = {}) {
+        if (Array.isArray(payload)) {
+            return this.model.create(payload, options);
+        }
+
+        const [document] = await this.model.create([payload], options);
+
+        return document;
+    }
     createMany(payload = [], options = {}) { return this.model.insertMany(payload, options); }
 
     update(filter, payload, options = {}) {
