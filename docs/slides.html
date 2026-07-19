@@ -1,0 +1,631 @@
+<title>FinPilot — Internship Presentation</title>
+<style>
+  :root {
+    --ink: #0E1420;
+    --panel: #161E2E;
+    --panel-2: #1D2739;
+    --line: #2A3650;
+    --text: #E8ECF3;
+    --muted: #8A96AB;
+    --faint: #5E6A82;
+    --amber: #F2A93B;
+    --cyan: #46C7E8;
+    --red: #F26D6D;
+    --green: #5FD0A6;
+    --display: "Helvetica Neue", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    --body: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #05080E;
+    color: var(--text);
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck {
+    width: 100%;
+  }
+
+  /* Each slide is a 16:9 frame, centered, one per viewport height when scrolled. */
+  .slide {
+    position: relative;
+    width: min(96vw, calc(88vh * 16 / 9));
+    aspect-ratio: 16 / 9;
+    margin: 3vh auto;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: clamp(20px, 3.6vh, 46px) clamp(24px, 4vw, 60px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    scroll-margin-top: 3vh;
+    box-shadow: 0 24px 60px -30px #000;
+  }
+
+  /* subtle instrument-grid texture on the ground */
+  .slide::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 44px 44px;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+
+  .slide > * { position: relative; z-index: 1; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: clamp(9px, 1.35vh, 13px);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: clamp(10px, 2vh, 22px);
+  }
+  .eyebrow .rule {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, var(--line), transparent);
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+    text-wrap: balance;
+    margin: 0;
+    font-size: clamp(28px, 6vh, 62px);
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 650;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+    text-wrap: balance;
+    margin: 0 0 clamp(12px, 2.2vh, 26px);
+    font-size: clamp(22px, 4.4vh, 44px);
+  }
+
+  .lede {
+    color: var(--muted);
+    font-size: clamp(13px, 2vh, 20px);
+    line-height: 1.5;
+    max-width: 60ch;
+  }
+
+  ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: clamp(8px, 1.6vh, 16px); }
+  li {
+    position: relative;
+    padding-left: 26px;
+    font-size: clamp(12.5px, 1.95vh, 19px);
+    line-height: 1.42;
+    color: var(--text);
+  }
+  li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.62em;
+    width: 8px;
+    height: 8px;
+    background: var(--cyan);
+    transform: rotate(45deg);
+  }
+  li.warn::before { background: var(--amber); }
+  li.crit::before { background: var(--red); }
+  li b { font-weight: 650; }
+  li .sub { display: block; color: var(--muted); font-size: 0.86em; margin-top: 2px; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(18px, 3vw, 44px); flex: 1; min-height: 0; }
+  .cols.narrow-left { grid-template-columns: 0.85fr 1fr; }
+  .col { min-width: 0; display: flex; flex-direction: column; gap: clamp(8px, 1.5vh, 14px); }
+
+  code, .mono { font-family: var(--mono); }
+  .k-amber { color: var(--amber); }
+  .k-cyan { color: var(--cyan); }
+  .k-red { color: var(--red); }
+  .k-green { color: var(--green); }
+  .k-muted { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: clamp(11px, 1.7vh, 16px); }
+  th, td { text-align: left; padding: clamp(5px, 1vh, 9px) 10px; border-bottom: 1px solid var(--line); }
+  th {
+    font-family: var(--mono);
+    font-size: 0.8em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 500;
+  }
+  td { color: var(--text); }
+  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tr.total td { border-top: 1px solid var(--line); border-bottom: none; }
+
+  .stat-row { display: flex; gap: clamp(14px, 2.4vw, 34px); flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat .v { font-family: var(--mono); font-size: clamp(26px, 5.4vh, 54px); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: clamp(10px, 1.5vh, 14px); color: var(--muted); letter-spacing: 0.02em; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: clamp(12px, 2vh, 20px);
+  }
+  .panel.mono-block { font-family: var(--mono); font-size: clamp(11px, 1.7vh, 16px); line-height: 1.55; }
+
+  .footer {
+    position: absolute;
+    left: clamp(24px, 4vw, 60px);
+    right: clamp(24px, 4vw, 60px);
+    bottom: clamp(12px, 2vh, 22px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: clamp(9px, 1.3vh, 12px);
+    color: var(--faint);
+    letter-spacing: 0.06em;
+    z-index: 2;
+  }
+  .footer .brand { color: var(--muted); }
+
+  .spacer { flex: 1; }
+
+  /* title slide */
+  .title-slide { justify-content: center; }
+  .title-slide .meta { margin-top: clamp(22px, 4vh, 46px); display: grid; grid-template-columns: auto 1fr; gap: 6px clamp(16px, 2vw, 30px); font-size: clamp(12px, 1.9vh, 18px); max-width: 60ch; }
+  .title-slide .meta .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72em; color: var(--faint); align-self: center; }
+  .title-slide .meta .val { color: var(--text); }
+  .title-slide .meta .val em { color: var(--amber); font-style: normal; }
+
+  .tagline { font-family: var(--mono); color: var(--cyan); font-size: clamp(11px, 1.7vh, 16px); margin-top: 14px; letter-spacing: 0.02em; }
+
+  .flow { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+  .flow .step { flex: 1; min-width: 120px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: clamp(10px,1.8vh,16px); display: flex; flex-direction: column; gap: 6px; }
+  .flow .step .n { font-family: var(--mono); color: var(--cyan); font-size: 0.8em; letter-spacing: 0.1em; }
+  .flow .step .t { font-weight: 650; font-size: clamp(12px,1.8vh,17px); }
+  .flow .step .d { color: var(--muted); font-size: clamp(10px,1.5vh,14px); line-height: 1.35; }
+  .flow .arrow { align-self: center; color: var(--faint); font-family: var(--mono); }
+
+  .callout { border-left: 3px solid var(--amber); padding-left: 16px; }
+  .callout.cyan { border-color: var(--cyan); }
+  .callout .big { font-family: var(--mono); font-size: clamp(20px,3.6vh,34px); font-weight: 600; line-height: 1.1; }
+
+  .barwrap { display: flex; flex-direction: column; gap: clamp(9px,1.7vh,15px); font-family: var(--mono); }
+  .bar { display: grid; grid-template-columns: 92px 1fr auto; align-items: center; gap: 12px; font-size: clamp(11px,1.6vh,15px); }
+  .bar .track { height: clamp(14px,2.4vh,22px); background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+  .bar .fill { height: 100%; border-radius: 3px; }
+  .bar .val { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+  /* nav */
+  .nav {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(13,19,30,0.92); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 16px; z-index: 50;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    backdrop-filter: blur(8px);
+  }
+  .nav button { background: none; border: none; color: var(--text); cursor: pointer; font-size: 16px; padding: 2px 8px; border-radius: 6px; }
+  .nav button:hover { background: var(--panel-2); }
+  .nav button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .nav .count { min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; }
+
+  @media print {
+    .nav { display: none; }
+    body { background: #fff; }
+    .slide { page-break-after: always; margin: 0 auto; box-shadow: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .slide { scroll-behavior: smooth; }
+  }
+</style>
+
+<div class="deck" id="deck">
+
+  <!-- 1 — TITLE -->
+  <section class="slide title-slide" id="s1">
+    <div class="eyebrow"><span>B.Tech Summer Internship · CSE</span><span class="rule"></span><span>BIT Mesra</span></div>
+    <h1>Diagnosing &amp; Hardening a<br>Financial Analytics Backend</h1>
+    <div class="tagline">// a correctness and performance engineering study on a MERN system</div>
+    <div class="meta">
+      <span class="lbl">Student</span><span class="val">Pranav Prajyot &nbsp;·&nbsp; <em>&lt;Roll No.&gt;</em></span>
+      <span class="lbl">Branch</span><span class="val">Computer Science &amp; Engineering</span>
+      <span class="lbl">Guide</span><span class="val"><em>&lt;Name &amp; designation of the guide&gt;</em></span>
+      <span class="lbl">Project</span><span class="val">FinPilot — personal finance &amp; investment analytics</span>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>01 / 15</span></div>
+  </section>
+
+  <!-- 2 — MOTIVATION & BACKGROUND -->
+  <section class="slide" id="s2">
+    <div class="eyebrow"><span>Motivation &amp; Background</span><span class="rule"></span></div>
+    <h2>Code that reads as correct is not code that is correct</h2>
+    <div class="cols">
+      <div class="col">
+        <ul>
+          <li><b>FinPilot</b> is a multi-tenant MERN finance platform — workspaces own accounts, transactions, budgets, goals, debts, investments.<span class="sub">15 feature modules, background jobs, Docker, Redis — it looked finished.</span></li>
+          <li class="warn">It had <b>never been exercised end to end.</b><span class="sub">Completeness of surface hid a non-functional core.</span></li>
+          <li>Fast-built and AI-assisted code fails <b>semantically, not syntactically</b> — a wrong field name, an uncast type, a stale API.<span class="sub">Such errors pass code review and surface only on execution.</span></li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="panel callout">
+          <div class="k-muted mono" style="font-size:0.8em;letter-spacing:0.1em;text-transform:uppercase">The premise</div>
+          <div class="big">A finance app is judged first on whether its numbers are <span class="k-amber">right</span>,</div>
+          <div class="lede" style="margin-top:8px">then on whether it stays right as data grows. This study tests both — empirically.</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>02 / 15</span></div>
+  </section>
+
+  <!-- 3 — OBJECTIVES -->
+  <section class="slide" id="s3">
+    <div class="eyebrow"><span>Objectives</span><span class="rule"></span></div>
+    <h2>Five aims</h2>
+    <div class="cols">
+      <div class="col">
+        <ul>
+          <li><b>Establish true state</b> by verification, not inspection.</li>
+          <li><b>Fix every defect</b> found, each locked behind a regression test <b>proven to fail</b> against the bug.</li>
+          <li><b>Revive the test suite</b> (it had never run) and rebuild CI against real backing services.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <ul>
+          <li><b>Quantify three database decisions</b> with a reproducible harness at realistic scale.</li>
+          <li><b>Record authorship &amp; AI-assistance honestly</b> — a two-person repository, stated as such.</li>
+        </ul>
+        <div class="panel" style="margin-top:auto">
+          <div class="mono" style="font-size:0.82em;color:var(--muted);line-height:1.5">scope · <span class="k-cyan">this author's individual contribution</span> over a pre-existing collaborative codebase</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>03 / 15</span></div>
+  </section>
+
+  <!-- 4 — THE PROBLEM / HOOK -->
+  <section class="slide" id="s4">
+    <div class="eyebrow"><span>The finding that framed everything</span><span class="rule"></span></div>
+    <h2>The dashboard reported zero. Ground truth was ₹50.5 crore.</h2>
+    <div class="cols narrow-left">
+      <div class="col">
+        <div class="panel mono-block">
+          <div class="k-muted">// dashboard.service.js — as shipped</div>
+          <div>Transaction.aggregate([</div>
+          <div>&nbsp;&nbsp;{ $match: { workspace<span class="k-red">: "abc…"</span> } },<span class="k-red"> ← string</span></div>
+          <div>&nbsp;&nbsp;{ $group: { _id: "$type",</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;total: { $sum: <span class="k-red">"$amount"</span> } } }<span class="k-red"> ← no such field</span></div>
+          <div>])</div>
+          <div style="margin-top:8px" class="k-amber">→ returns []  ⟹  income 0 / expense 0</div>
+        </div>
+      </div>
+      <div class="col">
+        <ul>
+          <li class="crit"><code>aggregate()</code> does <b>not</b> cast a string id to ObjectId the way <code>find()</code> does — <b>0 documents matched.</b></li>
+          <li class="crit">The field is <code>money.amount</code>, not <code>amount</code> — the sum totalled a <b>missing field.</b></li>
+          <li><b>Two independent bugs stacked.</b> A test asserting only "responds 200" passes against this.</li>
+          <li class="warn">The same pattern recurred in <b>12 pipelines</b> across five services.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>04 / 15</span></div>
+  </section>
+
+  <!-- 5 — METHODOLOGY: verification-first (graphical) -->
+  <section class="slide" id="s5">
+    <div class="eyebrow"><span>Methodology · I</span><span class="rule"></span><span>verification-first</span></div>
+    <h2>Trust no output until it is checked against a running system</h2>
+    <div class="flow">
+      <div class="step"><span class="n">01</span><span class="t">Reproduce</span><span class="d">Drive the real code against seeded data at scale.</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">02</span><span class="t">Ground truth</span><span class="d">Compute the correct answer independently of the code under test.</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">03</span><span class="t">Fix</span><span class="d">Correct the defect; decide the trade-off explicitly.</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">04</span><span class="t">Mutation-verify</span><span class="d">Revert the fix; confirm the test fails with the bug's signature.</span></div>
+    </div>
+    <div class="panel callout" style="margin-top:auto">
+      <div class="lede" style="color:var(--text)">The discipline held <b>symmetrically</b> — the benchmark seeder was itself caught reporting <span class="k-amber">"1,000 seeded"</span> into an empty collection, and trusted only after it verified its own inserts.</div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>05 / 15</span></div>
+  </section>
+
+  <!-- 6 — METHODOLOGY: dataset + harness -->
+  <section class="slide" id="s6">
+    <div class="eyebrow"><span>Methodology · II</span><span class="rule"></span><span>reproducible measurement</span></div>
+    <h2>A deterministic dataset any examiner can regenerate</h2>
+    <div class="cols">
+      <div class="col">
+        <ul>
+          <li>Single seeded PRNG — <b>same seed ⟹ identical data,</b> <code>_id</code>s included.<span class="sub">Verified: MD5 over all sorted _ids is stable across runs.</span></li>
+          <li>Dates from a <b>fixed epoch</b>, never <code>Date.now()</code>.</li>
+          <li>Realistic skewed distributions — uniform data would flatten index selectivity.</li>
+          <li>Timings as <b>p50 / p95 / p99</b> over 20 runs, 3 warmup; local DB to remove network variance.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="panel">
+          <div class="mono" style="font-size:0.78em;color:var(--faint);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">dataset @ 100k transactions</div>
+          <div class="stat-row">
+            <div class="stat"><span class="v k-cyan">852<span style="font-size:0.5em"> B</span></span><span class="l">avg / document</span></div>
+            <div class="stat"><span class="v k-cyan">85<span style="font-size:0.5em"> MB</span></span><span class="l">collection data</span></div>
+          </div>
+          <div class="stat-row" style="margin-top:16px">
+            <div class="stat"><span class="v k-cyan">6.25<span style="font-size:0.5em"> MB</span></span><span class="l">index size</span></div>
+            <div class="stat"><span class="v k-cyan">5.7k<span style="font-size:0.5em">/s</span></span><span class="l">insert rate</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>06 / 15</span></div>
+  </section>
+
+  <!-- 7 — DEFECTS TABLE -->
+  <section class="slide" id="s7">
+    <div class="eyebrow"><span>Results · defects found</span><span class="rule"></span><span>17 fixed</span></div>
+    <h2>What verification exposed</h2>
+    <table>
+      <thead><tr><th>Area</th><th>Defect</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td>ORM lifecycle</td><td>7 models used Mongoose-8 callback hooks</td><td class="k-red">No document could be saved</td></tr>
+        <tr><td>Analytics</td><td>12 pipelines: wrong field + uncast id</td><td class="k-red">Every total was 0</td></tr>
+        <tr><td>Investments</td><td>Service written against a non-existent schema</td><td class="k-red">NaN; oversell never blocked</td></tr>
+        <tr><td>Budgets</td><td>Read <code>budget.amount</code> (undefined)</td><td class="k-amber">NaN; alerts fired every run</td></tr>
+        <tr><td>Debts</td><td>Read <code>totalAmount</code> / <code>paidAmount</code></td><td class="k-amber">A debt could never close</td></tr>
+        <tr><td>Indexes</td><td>Duplicate <code>expiresAt</code> declarations</td><td class="k-amber">TTL never built; nothing reaped</td></tr>
+        <tr><td>Boot</td><td>Deleted constant · wrong Clerk API · bad paths</td><td class="k-red">All 15 modules failed to load</td></tr>
+      </tbody>
+    </table>
+    <div class="footer"><span class="brand">FinPilot</span><span>07 / 15</span></div>
+  </section>
+
+  <!-- 8 — E2 -->
+  <section class="slide" id="s8">
+    <div class="eyebrow"><span>Results · Experiment E2</span><span class="rule"></span><span>where to compute</span></div>
+    <h2>Database <code>$group</code> vs application-side summation</h2>
+    <div class="cols narrow-left">
+      <div class="col">
+        <div class="barwrap">
+          <div class="k-muted mono" style="font-size:0.78em;letter-spacing:0.1em;text-transform:uppercase">p50 latency @ 100k · income+expense total</div>
+          <div class="bar"><span>$group</span><div class="track"><div class="fill" style="width:2.3%;background:var(--cyan)"></div></div><span class="val">39 ms</span></div>
+          <div class="bar"><span>projected</span><div class="track"><div class="fill" style="width:11.6%;background:var(--amber)"></div></div><span class="val">197 ms</span></div>
+          <div class="bar"><span>full-doc</span><div class="track"><div class="fill" style="width:100%;background:var(--red)"></div></div><span class="val">1,705 ms</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="callout">
+          <div class="big"><span class="k-cyan">7×</span> → <span class="k-amber">28×</span> → <span class="k-red">44×</span></div>
+          <div class="lede" style="margin-top:6px;color:var(--text)">the penalty for app-side reduction widens with scale — 1k → 10k → 100k.</div>
+        </div>
+        <ul style="margin-top:auto">
+          <li>Cost grows with a user's <b>history</b>, not a constant overhead.</li>
+          <li class="warn"><b>Correctness gate:</b> the broken <code>$sum:"$amount"</code> was fastest of all — it summed nothing. Gating on ground truth stops the benchmark rewarding it.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>08 / 15</span></div>
+  </section>
+
+  <!-- 9 — E3 -->
+  <section class="slide" id="s9">
+    <div class="eyebrow"><span>Results · Experiment E3</span><span class="rule"></span><span>index coverage</span></div>
+    <h2>An index that covers the sort examines a constant 20 rows</h2>
+    <div class="cols">
+      <div class="col">
+        <table>
+          <thead><tr><th>Variant @ 100k</th><th class="num">Examined</th><th class="num">p50</th></tr></thead>
+          <tbody>
+            <tr><td class="k-cyan">compound (filter+sort)</td><td class="num k-cyan">20</td><td class="num">2.1 ms</td></tr>
+            <tr><td class="k-amber">filter-only</td><td class="num k-amber">32,659</td><td class="num">26 ms</td></tr>
+            <tr><td class="k-red">no index (COLLSCAN)</td><td class="num k-red">100,000</td><td class="num">43 ms</td></tr>
+          </tbody>
+        </table>
+        <div class="mono" style="font-size:0.8em;color:var(--muted);margin-top:auto;line-height:1.5">query · <span class="k-muted">find({workspace, isDeleted:false})<br>.sort({transactionDate:-1}).limit(20)</span></div>
+      </div>
+      <div class="col">
+        <ul>
+          <li><b>Constant vs linear.</b> The compound index examines 20 rows at every scale; the others examine every match.</li>
+          <li>Selectivity gap widens: <b>16× → 163× → 1,633×</b> examined.</li>
+          <li class="warn"><b>Plan assertion:</b> a first version dropped one index and MongoDB silently fell back to another — it compared two indexes while claiming index vs none. The variant now fails unless the planner picks the stage it claims.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>09 / 15</span></div>
+  </section>
+
+  <!-- 10 — E4 -->
+  <section class="slide" id="s10">
+    <div class="eyebrow"><span>Results · Experiment E4</span><span class="rule"></span><span>pagination at depth</span></div>
+    <h2>Offset degrades with depth; cursor stays flat</h2>
+    <div class="cols">
+      <div class="col">
+        <table>
+          <thead><tr><th class="num">Page</th><th class="num">Offset p50</th><th class="num">Cursor p50</th><th class="num">×</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td class="num">2.3 ms</td><td class="num">1.4 ms</td><td class="num">1.6</td></tr>
+            <tr><td class="num">100</td><td class="num">5.1 ms</td><td class="num">2.6 ms</td><td class="num">2.0</td></tr>
+            <tr><td class="num">500</td><td class="num">15.0 ms</td><td class="num">1.6 ms</td><td class="num k-amber">9.5</td></tr>
+            <tr><td class="num">1000</td><td class="num">29.9 ms</td><td class="num">1.7 ms</td><td class="num k-amber">17.4</td></tr>
+            <tr><td class="num">1600</td><td class="num k-red">41.9 ms</td><td class="num k-cyan">1.2 ms</td><td class="num k-red">33.9</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <ul>
+          <li><code>skip(n)</code> is not a seek — MongoDB <b>walks and discards</b> every skipped row. Cursor seeks straight to the key.</li>
+          <li class="warn"><b>Correctness costs an index:</b> a unique cursor needs <code>(transactionDate, _id)</code> — not covered by the shipped index, which forces a blocking sort of all 32,659 matches.</li>
+          <li class="warn">A per-page <code>count()</code> (~3.7 ms) is paid at <b>every</b> depth, regardless of strategy.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>10 / 15</span></div>
+  </section>
+
+  <!-- 11 — SELF-VALIDATING EXPERIMENTS (methodological core) -->
+  <section class="slide" id="s11">
+    <div class="eyebrow"><span>Discussion · the methodological core</span><span class="rule"></span></div>
+    <h2>Each experiment caught a wrong version of itself</h2>
+    <div class="flow" style="align-items:stretch">
+      <div class="step"><span class="n">E2</span><span class="t">Correctness gate</span><span class="d k-muted">The broken pipeline would have <span class="k-amber">won</span> — fast because it computed nothing. Gate: match ground truth before timing.</span></div>
+      <div class="step"><span class="n">E3</span><span class="t">Plan assertion</span><span class="d k-muted">Dropping one index <span class="k-amber">silently fell back</span> to another. Gate: assert IXSCAN vs COLLSCAN is what the variant claims.</span></div>
+      <div class="step"><span class="n">E4</span><span class="t">Sort assertion</span><span class="d k-muted">An uncovered cursor key made cursor look <span class="k-amber">slower</span>. Gate: fail if any plan holds a blocking SORT.</span></div>
+    </div>
+    <div class="panel callout cyan" style="margin-top:auto">
+      <div class="lede" style="color:var(--text);font-size:clamp(14px,2.2vh,22px)">In an analytics system, <b>correctness must gate performance</b> — a benchmark that skips this rewards the implementation that computes nothing, because computing nothing is fast.</div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>11 / 15</span></div>
+  </section>
+
+  <!-- 12 — TESTING OUTCOME -->
+  <section class="slide" id="s12">
+    <div class="eyebrow"><span>Results · testing &amp; CI</span><span class="rule"></span></div>
+    <h2>From a suite that never ran to a net that catches</h2>
+    <div class="stat-row" style="margin-bottom:auto">
+      <div class="stat"><span class="v k-red">0</span><span class="l">suites executed before<br>(misconfigured path)</span></div>
+      <div class="stat"><span class="v k-muted" style="align-self:center">→</span></div>
+      <div class="stat"><span class="v k-cyan">14</span><span class="l">suites now</span></div>
+      <div class="stat" style="margin-left:clamp(10px,4vw,50px)"><span class="v k-red">0</span><span class="l">real assertions before<br><code>expect(true).toBe(true)</code> ×10</span></div>
+      <div class="stat"><span class="v k-muted" style="align-self:center">→</span></div>
+      <div class="stat"><span class="v k-cyan">33</span><span class="l">value assertions now</span></div>
+    </div>
+    <ul>
+      <li>Every regression test <b>mutation-verified</b> — reverting the fix reproduces a failure with the bug's signature.</li>
+      <li>CI rebuilt to run against <b>real MongoDB + Redis</b>; static import-graph checks catch faults a case-insensitive dev filesystem hides.</li>
+      <li class="warn">Two further defects were found <b>by</b> the new tests, not by inspection — the net works.</li>
+    </ul>
+    <div class="footer"><span class="brand">FinPilot</span><span>12 / 15</span></div>
+  </section>
+
+  <!-- 13 — TOOLS -->
+  <section class="slide" id="s13">
+    <div class="eyebrow"><span>Tools &amp; techniques</span><span class="rule"></span></div>
+    <h2>Instruments used</h2>
+    <div class="cols">
+      <div class="col">
+        <ul>
+          <li><b>Runtime</b> — Node.js 22, Express 5, MongoDB 8, Mongoose 9, Redis.</li>
+          <li><b>Measurement</b> — <code>explain("executionStats")</code>, <code>$collStats</code>, <code>process.hrtime</code> percentiles.</li>
+          <li><b>Testing</b> — Jest + Supertest, Docker Compose for real backing services, mutation verification.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <ul>
+          <li><b>Determinism</b> — seeded mulberry32 PRNG, fixed reference epoch.</li>
+          <li><b>Static analysis</b> — custom import-graph + case-mismatch + reachability scanners.</li>
+          <li><b>CI</b> — GitHub Actions with Mongo/Redis service containers, lint + import checks.</li>
+        </ul>
+        <div class="panel mono-block" style="margin-top:auto;font-size:0.8em">
+          <span class="k-cyan">server/bench/</span> · <span class="k-muted">deterministic harness, 3 experiments,<br>diagnostic scanners — all reproducible</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>13 / 15</span></div>
+  </section>
+
+  <!-- 14 — CONCLUSION & FUTURE WORK -->
+  <section class="slide" id="s14">
+    <div class="eyebrow"><span>Conclusion &amp; future work</span><span class="rule"></span></div>
+    <h2>A non-booting app with zeroed analytics, made correct and measured</h2>
+    <div class="cols">
+      <div class="col">
+        <div class="k-cyan mono" style="font-size:0.8em;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Delivered</div>
+        <ul>
+          <li><b>17 defects</b> fixed, each behind a mutation-verified test.</li>
+          <li><b>3 experiments</b> quantifying core data-access decisions to 100k records.</li>
+          <li>The transferable lesson: <b>correctness gates performance</b>; a suite is evidence only in proportion to what it asserts.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="k-amber mono" style="font-size:0.8em;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Future work</div>
+        <ul>
+          <li>Apply E3/E4 to the app — add the <code>_id</code> tiebreaker index; migrate to cursor pagination.</li>
+          <li>Remove ~180 orphaned files (reachability-identified) after base-author review.</li>
+          <li>A <b>performance-regression budget</b> in CI; a dashboard consuming the now-correct endpoints.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>14 / 15</span></div>
+  </section>
+
+  <!-- 15 — REFERENCES -->
+  <section class="slide" id="s15">
+    <div class="eyebrow"><span>References &amp; provenance</span><span class="rule"></span></div>
+    <h2>References</h2>
+    <div class="cols">
+      <div class="col">
+        <ul style="gap:clamp(6px,1.2vh,12px)">
+          <li>MongoDB Manual v8.0 — <i>Aggregation Pipeline</i>; <i>Analyze Query Performance (explain)</i>.</li>
+          <li>MongoDB Manual v8.0 — <i>Indexes</i>; <i>Compound Index Sort Order</i>.</li>
+          <li>Automattic — <i>Mongoose Documentation: Middleware</i>, v9.x.</li>
+          <li>M. Winand — <i>SQL Performance Explained</i>: index selectivity &amp; keyset pagination.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="panel callout cyan">
+          <div class="k-cyan mono" style="font-size:0.78em;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Provenance</div>
+          <div class="lede" style="color:var(--text);font-size:clamp(12px,1.8vh,17px)">FinPilot is a two-person repository. This report covers <b>this author's individual contribution</b> — the diagnostic, correctness, testing and performance work — over a collaboratively-authored base. Full split in <code>docs/PROVENANCE.md</code>.</div>
+        </div>
+        <div class="mono" style="font-size:0.78em;color:var(--faint);margin-top:auto">every figure reproducible · <span class="k-muted">git history public · verified against a running database</span></div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">FinPilot</span><span>15 / 15</span></div>
+  </section>
+
+</div>
+
+<div class="nav" role="navigation" aria-label="Slide navigation">
+  <button id="prev" aria-label="Previous slide">←</button>
+  <span class="count" id="count">1 / 15</span>
+  <button id="next" aria-label="Next slide">→</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const count = document.getElementById('count');
+  let i = 0;
+
+  const clamp = (n) => Math.max(0, Math.min(slides.length - 1, n));
+  const go = (n) => {
+    i = clamp(n);
+    slides[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    count.textContent = (i + 1) + ' / ' + slides.length;
+  };
+
+  document.getElementById('next').addEventListener('click', () => go(i + 1));
+  document.getElementById('prev').addEventListener('click', () => go(i - 1));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(i - 1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+  });
+
+  // Keep the counter in sync when the user scrolls manually.
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        i = slides.indexOf(entry.target);
+        count.textContent = (i + 1) + ' / ' + slides.length;
+      }
+    });
+  }, { threshold: 0.55 });
+  slides.forEach((s) => io.observe(s));
+</script>
