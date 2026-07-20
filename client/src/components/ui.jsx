@@ -23,6 +23,7 @@ const PATHS = {
   edit: "M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z",
   check: "M20 6L9 17l-5-5",
   calendar: "M3 4h18v18H3zM3 10h18M8 2v4M16 2v4",
+  sparkle: "M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z",
 };
 
 export function Icon({ name, size = 18, className = "", strokeWidth = 2 }) {

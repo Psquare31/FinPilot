@@ -23,6 +23,14 @@ const aiInteractionSchema = new Schema(
       index: true,
     },
 
+    // Groups the turns of a single chat thread so it can be reloaded.
+    // Indexed in the Indexes section below.
+    conversationId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     // Indexed in the Indexes section below.
     feature: {
       type: String,
@@ -116,6 +124,11 @@ aiInteractionSchema.index({
 aiInteractionSchema.index({
   user: 1,
   createdAt: -1,
+});
+
+aiInteractionSchema.index({
+  conversationId: 1,
+  createdAt: 1,
 });
 
 aiInteractionSchema.index({

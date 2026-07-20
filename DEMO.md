@@ -76,6 +76,35 @@ account sees only its own data.
 > Vite only reads `client/.env` at start-up — restart the dev server after
 > editing it, or the key won't be picked up.
 
+## AI assistant (Google Gemini)
+
+Add to `server/.env` and restart the API:
+
+```ini
+GEMINI_API_KEY=...        # https://aistudio.google.com/apikey
+GEMINI_MODEL=gemini-2.5-flash   # optional
+```
+
+Without a key the AI endpoints return 503 and the **AI Assistant** page shows a
+setup message — the rest of the app is unaffected.
+
+Every AI feature is **grounded in the workspace's real data**: a compact
+snapshot (balances, spend per category, monthly history, budgets, goals,
+portfolio) is built server-side and sent with each request, so answers cite
+actual figures rather than inventing them. All calls are logged to the
+`AiInteraction` collection with tokens, latency, estimated cost and failures.
+
+| Feature | Where |
+|---|---|
+| Chat about your finances | Ask box on the assistant page |
+| Insights | ✨ Insights |
+| Budget recommendations | 🎯 Budget advice |
+| Cash-flow forecast (3 months) | 📈 Forecast |
+| Portfolio analysis | 💹 Portfolio |
+| Financial report | 📄 Report |
+| Receipt scanning (vision) | 🧾 Scan receipt |
+| Transaction auto-categorisation | `POST /api/v1/ai/categorize` |
+
 ## Suggested demo flow
 
 1. **Dashboard** — point out net worth, income/expense, savings rate, the

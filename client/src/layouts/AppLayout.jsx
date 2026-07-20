@@ -31,6 +31,7 @@ const NAV = [
   { to: "/budgets", label: "Budgets", icon: "budgets" },
   { to: "/goals", label: "Goals", icon: "goals" },
   { to: "/investments", label: "Investments", icon: "investments" },
+  { to: "/assistant", label: "AI Assistant", icon: "sparkle" },
 ];
 
 export default function AppLayout() {

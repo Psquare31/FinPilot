@@ -125,6 +125,21 @@ const envSchema = z.object({
     .default(""),
 
   // =====================================
+  // Gemini (Google Generative Language API)
+  // =====================================
+  // Optional: without a key the AI endpoints return a clear 503 instead of
+  // taking the rest of the API down.
+  GEMINI_API_KEY: z
+    .string()
+    .trim()
+    .default(""),
+
+  GEMINI_MODEL: z
+    .string()
+    .trim()
+    .default("gemini-3.5-flash"),
+
+  // =====================================
   // Demo mode
   // =====================================
   // When "true", every request is authenticated as a fixed local

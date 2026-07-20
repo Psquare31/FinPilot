@@ -746,6 +746,188 @@ textarea.input:focus {
   }
 }
 
+/* ---------- AI assistant ---------- */
+
+.ai-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.ai-actions .tag {
+  font-size: 12.5px;
+  padding: 7px 13px;
+}
+
+.ai-actions .tag:hover:not(:disabled) {
+  background: var(--brand-soft);
+  color: #c7cbff;
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.ai-actions .tag:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-chat {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  /* Fill the viewport below the header/actions, but never collapse smaller
+     than this — the thread scrolls internally rather than growing the page. */
+  height: calc(100vh - 290px);
+  min-height: 380px;
+  max-height: 760px;
+  overflow: hidden; /* keeps children inside the card's rounded corners */
+}
+
+.ai-thread {
+  flex: 1 1 auto;
+  /* Without min-height:0 a column flex item defaults to min-height:auto, so it
+     stretches to fit its content and overflow-y never engages. This one line
+     is what makes the thread scrollable. */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ai-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.ai-msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.ai-msg.user {
+  justify-content: flex-end;
+}
+
+.ai-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.ai-bubble {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 16px;
+  max-width: 78%;
+  font-size: 13.5px;
+}
+
+.ai-msg.user .ai-bubble {
+  background: var(--brand-soft);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #dfe3ff;
+}
+
+.ai-bubble.err {
+  background: var(--red-soft);
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.ai-changes {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-change {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12.5px;
+  color: #6ee7a8;
+  background: var(--green-soft);
+  border-radius: 8px;
+  padding: 6px 9px;
+}
+
+.ai-change svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ai-insight {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+}
+
+.ai-composer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elev);
+  border-radius: 0 0 var(--radius) var(--radius);
+  flex-shrink: 0; /* the composer must never be squeezed by a long thread */
+}
+
+/* Minimal markdown output */
+
+.md > :first-child {
+  margin-top: 0;
+}
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md-p {
+  margin: 0 0 9px;
+  line-height: 1.6;
+}
+
+.md-h {
+  font-weight: 650;
+  color: var(--text);
+  margin: 14px 0 7px;
+  font-size: 14px;
+}
+
+.md-list {
+  margin: 0 0 9px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  line-height: 1.55;
+}
+
+.md-code {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-size: 12px;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
 /* ---------- Sign-in screen ---------- */
 
 .auth-screen {

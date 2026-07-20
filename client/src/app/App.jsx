@@ -21,6 +21,7 @@ import TransactionsPage from "../features/transactions/TransactionsPage";
 import BudgetsPage from "../features/budgets/BudgetsPage";
 import GoalsPage from "../features/goals/GoalsPage";
 import InvestmentsPage from "../features/investments/InvestmentsPage";
+import AiPage from "../features/ai/AiPage";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -70,6 +71,7 @@ function AppRoutes() {
         <Route path="/budgets" element={<BudgetsPage />} />
         <Route path="/goals" element={<GoalsPage />} />
         <Route path="/investments" element={<InvestmentsPage />} />
+        <Route path="/assistant" element={<AiPage />} />
       </Route>
     </Routes>
   );
