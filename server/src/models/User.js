@@ -69,11 +69,14 @@ const userSchema = new Schema(
       maxlength: 50,
     },
 
+    // Not required: identity providers (Clerk email sign-up, some OAuth
+    // providers) do not always supply a family name, and rejecting those
+    // users would lock them out of the app entirely. `minlength` is omitted
+    // for the same reason — it would reject the empty default.
     lastName: {
       type: String,
-      required: [true, "Last name is required"],
+      default: "",
       trim: true,
-      minlength: 2,
       maxlength: 50,
     },
 

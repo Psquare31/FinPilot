@@ -7,6 +7,31 @@ const api = axios.create({
   timeout: 20000,
 });
 
+// When the server runs the real Clerk flow, every request needs the current
+// session token. Clerk's token is only reachable from a React hook, so the app
+// registers a getter here once Clerk has loaded. In DEMO_AUTH mode no getter is
+// registered and requests go out unauthenticated, which is exactly what the
+// server expects.
+let tokenGetter = null;
+
+export const setTokenGetter = (fn) => {
+  tokenGetter = fn;
+};
+
+api.interceptors.request.use(async (config) => {
+  if (tokenGetter) {
+    try {
+      const token = await tokenGetter();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch {
+      // Fall through unauthenticated; the API will answer 401.
+    }
+  }
+  return config;
+});
+
 // Unwrap the standard ApiResponse envelope: { success, statusCode, data, message }
 // and surface a clean error message on failure.
 const unwrap = (res) => res.data?.data ?? res.data;

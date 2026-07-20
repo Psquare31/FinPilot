@@ -1,8 +1,29 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { UserButton } from "@clerk/clerk-react";
 
 import { Icon } from "../components/ui";
 import { useWorkspace } from "../store/WorkspaceContext";
+import { useAuthMode } from "../store/AuthModeContext";
 import { initials } from "../utils/format";
+
+// UserButton requires a ClerkProvider above it, which only exists when the API
+// is running the real Clerk flow. In demo mode render a plain avatar instead.
+function AccountMenu({ user }) {
+  const { demoAuth } = useAuthMode();
+
+  if (demoAuth) {
+    return <div className="avatar">{initials(user?.firstName, user?.lastName)}</div>;
+  }
+
+  return (
+    <UserButton
+      appearance={{
+        variables: { colorBackground: "#161c28", colorText: "#e8edf6" },
+        elements: { avatarBox: { width: 34, height: 34 } },
+      }}
+    />
+  );
+}
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: "dashboard", end: true },
@@ -58,7 +79,7 @@ export default function AppLayout() {
               <span className="ws-dot" />
               API connected
             </div>
-            <div className="avatar">{initials(user?.firstName, user?.lastName)}</div>
+            <AccountMenu user={user} />
           </div>
         </header>
 

@@ -8,6 +8,18 @@ import {
     getProfileImage,
 } from "../utils/auth/auth.utils.js";
 
+// Clerk does not guarantee a first name — an email/password sign-up has none
+// unless the instance asks for it. `firstName` is required (min 2 chars) on the
+// User model, so fall back to the email's local part and finally to a literal,
+// otherwise a valid sign-in fails with a validation error and locks the user out.
+const deriveFirstName = (clerkUser, email) => {
+    const candidate =
+        clerkUser.firstName?.trim() ||
+        email.split("@")[0].replace(/[._-]+/g, " ").trim();
+
+    return candidate && candidate.length >= 2 ? candidate.slice(0, 50) : "User";
+};
+
 class AuthService {
     // ======================================================
     // Synchronize Clerk user with MongoDB.
@@ -42,7 +54,7 @@ class AuthService {
 
                 authProvider: getAuthProvider(clerkUser),
 
-                firstName: clerkUser.firstName || "",
+                firstName: deriveFirstName(clerkUser, email),
 
                 lastName: clerkUser.lastName || "",
 
@@ -64,9 +76,10 @@ class AuthService {
 
         user.clerkId = clerkUser.id;
 
-        user.firstName = clerkUser.firstName || user.firstName;
+        user.firstName =
+            clerkUser.firstName || user.firstName || deriveFirstName(clerkUser, email);
 
-        user.lastName = clerkUser.lastName || user.lastName;
+        user.lastName = clerkUser.lastName || user.lastName || "";
 
         user.email = email;
 
