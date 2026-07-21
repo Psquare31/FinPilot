@@ -2,69 +2,145 @@ import BaseService from "../../shared/services/base.service.js";
 import ApiError from "../../utils/ApiError.js";
 import withTransaction from "../../utils/withTransaction.js";
 import toObjectId from "../../utils/toObjectId.js";
+import permissionService from "../../shared/services/permission.service.js";
 
 import Transaction from "../../models/Transaction.js";
 import Account from "../../models/Account.js";
 import Category from "../../models/Category.js";
+
+// The amount of record lives in the `money` subdocument. Older callers sent a
+// flat `amount` alongside it, so accept either but always treat `money.amount`
+// as authoritative — reading the wrong one silently produced NaN balances.
+const amountOf = (source) => {
+  const value = source?.money?.amount ?? source?.amount;
+
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new ApiError(400, "Amount must be a number greater than zero.");
+  }
+
+  return amount;
+};
+
+// Money is stored to 2 decimals; accumulating raw floats drifts the balance.
+const round = (value) => Number(value.toFixed(2));
 
 class TransactionService extends BaseService {
   constructor() {
     super(Transaction);
   }
 
-  // Create Transaction
-  async createTransaction(payload) {
-    return withTransaction(async (session) => {
-      const account = await Account.findOne({
-        _id: payload.account,
-        workspace: payload.workspace,
-        isArchived: false,
-        isDeleted: false,
-      }).session(session);
+  // Apply a signed delta to an account, guarding the schema's `min: 0` balance
+  // so an overdraft surfaces as a 400 rather than a Mongoose cast error.
+  applyDelta(account, delta) {
+    const next = round(account.balance + delta);
 
-      if (!account) {
-        throw new ApiError(404, "Account not found.");
-      }
+    if (next < 0) {
+      throw new ApiError(400, "Insufficient account balance.");
+    }
+
+    account.balance = next;
+  }
+
+  // Signed effect a transaction has on its own account.
+  deltaFor(type, amount) {
+    switch (type) {
+      case "income":
+        return amount;
+
+      case "expense":
+      case "transfer":
+        return -amount;
+
+      default:
+        throw new ApiError(400, "Invalid transaction type.");
+    }
+  }
+
+  // Load an account inside the session, scoped to the workspace.
+  async loadAccount(accountId, workspace, session, label = "Account") {
+    const account = await Account.findOne({
+      _id: accountId,
+      ...(workspace ? { workspace } : {}),
+      isArchived: false,
+    }).session(session ?? null);
+
+    if (!account) {
+      throw new ApiError(404, `${label} not found.`);
+    }
+
+    return account;
+  }
+
+  // Create Transaction
+  //
+  // `workspace` and `audit.createdBy` are derived server-side from the account
+  // and the authenticated user — they used to be trusted from the request body,
+  // which let any caller write into a workspace they don't belong to.
+  async createTransaction(userId, payload) {
+    const amount = amountOf(payload);
+
+    return withTransaction(async (session) => {
+      const account = await this.loadAccount(
+        payload.account,
+        undefined,
+        session
+      );
+
+      const workspace = account.workspace;
+
+      await permissionService.requireWorkspaceAccess(workspace, userId);
 
       const category = await Category.findOne({
         _id: payload.category,
-        workspace: payload.workspace,
+        workspace,
         isArchived: false,
-        isDeleted: false,
       }).session(session);
 
       if (!category) {
         throw new ApiError(404, "Category not found.");
       }
 
-      switch (payload.type) {
-        case "income":
-          account.balance += payload.amount;
-          break;
+      const accountsToSave = [account];
 
-        case "expense":
-          if (account.balance < payload.amount) {
-            throw new ApiError(
-              400,
-              "Insufficient account balance."
-            );
-          }
+      if (payload.type === "transfer") {
+        const destination = await this.loadAccount(
+          payload.transferAccount,
+          workspace,
+          session,
+          "Destination account"
+        );
 
-          account.balance -= payload.amount;
-          break;
-
-        default:
+        if (String(destination._id) === String(account._id)) {
           throw new ApiError(
             400,
-            "Invalid transaction type."
+            "Transfer account cannot be the same as the source account."
           );
+        }
+
+        this.applyDelta(destination, amount);
+        accountsToSave.push(destination);
       }
 
-      const transaction = await this.create(payload, {
-        session,
-      });
+      this.applyDelta(account, this.deltaFor(payload.type, amount));
 
-      await account.save({ session });
+      const transaction = await this.create(
+        {
+          ...payload,
+          workspace,
+          money: {
+            amount,
+            currency: payload.money?.currency || account.currency,
+          },
+          audit: { createdBy: userId },
+        },
+        { session }
+      );
+
+      await Promise.all(
+        accountsToSave.map((item) => item.save({ session }))
+      );
 
       return transaction;
     });
@@ -139,311 +215,225 @@ class TransactionService extends BaseService {
   }
 
   // Update Transaction
-  async updateTransaction(id, payload) {
+  //
+  // Reverses the original effect on the original account, then applies the new
+  // effect on the (possibly different) target account.
+  async updateTransaction(id, userId, payload) {
     return withTransaction(async (session) => {
-      const transaction = await Transaction.findById(id).session(session);
+      const transaction = await Transaction.findOne({
+        _id: id,
+        isDeleted: false,
+      }).session(session);
 
       if (!transaction) {
         throw new ApiError(404, "Transaction not found.");
       }
 
-      const oldAccount = await Account.findById(
-        transaction.account
-      ).session(session);
-
-      if (!oldAccount) {
-        throw new ApiError(404, "Account not found.");
-      }
-
-      const newAccountId =
-        payload.account || transaction.account;
-
-      const newAccount =
-        String(newAccountId) === String(oldAccount._id)
-          ? oldAccount
-          : await Account.findById(newAccountId).session(session);
-
-      if (!newAccount) {
-        throw new ApiError(404, "Destination account not found.");
-      }
-
-      // Reverse old transaction
-      if (transaction.type === "income") {
-        oldAccount.balance -= transaction.amount;
-      } else {
-        oldAccount.balance += transaction.amount;
-      }
-
-      const updatedType =
-        payload.type ?? transaction.type;
-
-      const updatedAmount =
-        payload.amount ?? transaction.amount;
-
-      // Apply new transaction
-      if (updatedType === "income") {
-        newAccount.balance += updatedAmount;
-      } else {
-        if (newAccount.balance < updatedAmount) {
-          throw new ApiError(
-            400,
-            "Insufficient account balance."
-          );
-        }
-
-        newAccount.balance -= updatedAmount;
-      }
-
-      await Promise.all([
-        oldAccount.save({ session }),
-        String(oldAccount._id) === String(newAccount._id)
-          ? Promise.resolve()
-          : newAccount.save({ session }),
-      ]);
-
-      return this.updateById(
-        id,
-        payload,
-        { session }
+      await permissionService.requireWorkspaceAccess(
+        transaction.workspace,
+        userId
       );
+
+      const oldAmount = amountOf(transaction);
+
+      const oldAccount = await this.loadAccount(
+        transaction.account,
+        transaction.workspace,
+        session
+      );
+
+      const newAccountId = payload.account ?? transaction.account;
+
+      const sameAccount =
+        String(newAccountId) === String(oldAccount._id);
+
+      const newAccount = sameAccount
+        ? oldAccount
+        : await this.loadAccount(
+            newAccountId,
+            transaction.workspace,
+            session,
+            "Destination account"
+          );
+
+      const newType = payload.type ?? transaction.type;
+
+      const newAmount =
+        payload.money?.amount !== undefined || payload.amount !== undefined
+          ? amountOf(payload)
+          : oldAmount;
+
+      // Reverse the original effect, then apply the new one. Both land on the
+      // same document when the account is unchanged, so the net delta is right.
+      this.applyDelta(
+        oldAccount,
+        -this.deltaFor(transaction.type, oldAmount)
+      );
+
+      this.applyDelta(newAccount, this.deltaFor(newType, newAmount));
+
+      const accountsToSave = sameAccount
+        ? [oldAccount]
+        : [oldAccount, newAccount];
+
+      await Promise.all(
+        accountsToSave.map((item) => item.save({ session }))
+      );
+
+      Object.assign(transaction, payload, {
+        money: {
+          amount: newAmount,
+          currency:
+            payload.money?.currency ?? transaction.money.currency,
+        },
+        audit: {
+          ...transaction.audit.toObject(),
+          updatedBy: userId,
+        },
+      });
+
+      await transaction.save({ session });
+
+      return transaction;
     });
   }
 
   // Delete Transaction
-  async deleteTransaction(id) {
+  //
+  // Soft delete: the model carries `isDeleted`/`deletedAt` and every read path
+  // filters on them, so hard-deleting here lost the audit trail.
+  async deleteTransaction(id, userId) {
     return withTransaction(async (session) => {
-      const transaction = await Transaction.findById(id).session(session);
+      const transaction = await Transaction.findOne({
+        _id: id,
+        isDeleted: false,
+      }).session(session);
 
       if (!transaction) {
         throw new ApiError(404, "Transaction not found.");
       }
 
-      const account = await Account.findById(
-        transaction.account
-      ).session(session);
+      await permissionService.requireWorkspaceAccess(
+        transaction.workspace,
+        userId
+      );
 
-      if (!account) {
-        throw new ApiError(404, "Account not found.");
+      const amount = amountOf(transaction);
+
+      const account = await this.loadAccount(
+        transaction.account,
+        transaction.workspace,
+        session
+      );
+
+      const accountsToSave = [account];
+
+      // A transfer moved money out of `account` and into `transferAccount`;
+      // undoing it has to reverse both sides.
+      if (transaction.type === "transfer" && transaction.transferAccount) {
+        const destination = await this.loadAccount(
+          transaction.transferAccount,
+          transaction.workspace,
+          session,
+          "Destination account"
+        );
+
+        this.applyDelta(destination, -amount);
+        accountsToSave.push(destination);
       }
 
-      switch (transaction.type) {
-        case "income":
-          account.balance -= transaction.amount;
-          break;
+      this.applyDelta(
+        account,
+        -this.deltaFor(transaction.type, amount)
+      );
 
-        case "expense":
-          account.balance += transaction.amount;
-          break;
+      await Promise.all(
+        accountsToSave.map((item) => item.save({ session }))
+      );
 
-        default:
-          throw new ApiError(
-            400,
-            "Invalid transaction type."
-          );
-      }
+      transaction.isDeleted = true;
+      transaction.deletedAt = new Date();
 
-      await account.save({ session });
-
-      await this.deleteById(id, {
-        session,
-      });
+      await transaction.save({ session });
 
       return true;
     });
   }
   
   // Transfer Between Accounts
-  async transferBetweenAccounts(payload) {
-    return withTransaction(async (session) => {
-      const {
-        fromAccount,
-        toAccount,
-        amount,
-        workspace,
-        category,
-        transactionDate,
-        description,
-      } = payload;
+  //
+  // A transfer is a single `type: "transfer"` record carrying `transferAccount`
+  // — the model validates that pairing and `createTransaction` moves both
+  // balances. The previous version wrote two loose income/expense rows tagged
+  // with an `isTransfer` flag that is a read-only virtual, so it never stuck.
+  async transferBetweenAccounts(userId, payload) {
+    const { fromAccount, toAccount, ...rest } = payload;
 
-      if (String(fromAccount) === String(toAccount)) {
-        throw new ApiError(
-          400,
-          "Source and destination accounts cannot be the same."
-        );
-      }
-
-      const [source, destination] =
-        await Promise.all([
-          Account.findOne({
-            _id: fromAccount,
-            workspace,
-            isArchived: false,
-            isDeleted: false,
-          }).session(session),
-
-          Account.findOne({
-            _id: toAccount,
-            workspace,
-            isArchived: false,
-            isDeleted: false,
-          }).session(session),
-        ]);
-
-      if (!source || !destination) {
-        throw new ApiError(
-          404,
-          "One or more accounts not found."
-        );
-      }
-
-      if (source.balance < amount) {
-        throw new ApiError(
-          400,
-          "Insufficient account balance."
-        );
-      }
-
-      source.balance -= amount;
-      destination.balance += amount;
-
-      await Promise.all([
-        source.save({ session }),
-        destination.save({ session }),
-      ]);
-
-      const [expenseTransaction] =
-        await Transaction.create(
-          [
-            {
-              workspace,
-              account: fromAccount,
-              category,
-              amount,
-              type: "expense",
-              description,
-              transactionDate,
-              isTransfer: true,
-            },
-          ],
-          { session }
-        );
-
-      const [incomeTransaction] =
-        await Transaction.create(
-          [
-            {
-              workspace,
-              account: toAccount,
-              category,
-              amount,
-              type: "income",
-              description,
-              transactionDate,
-              isTransfer: true,
-            },
-          ],
-          { session }
-        );
-
-      return {
-        expenseTransaction,
-        incomeTransaction,
-      };
+    return this.createTransaction(userId, {
+      ...rest,
+      account: fromAccount,
+      transferAccount: toAccount,
+      type: "transfer",
     });
   }
 
   // Bulk Create Transactions
-  async bulkCreateTransactions(payload = []) {
+  async bulkCreateTransactions(userId, payload = []) {
     if (!payload.length) {
-      throw new ApiError(
-        400,
-        "Transactions are required."
-      );
+      throw new ApiError(400, "Transactions are required.");
     }
 
-    const transactions = await Transaction.insertMany(payload);
+    // Reuse the single-create path so every row gets the same permission check,
+    // balance math and audit stamping.
+    const created = [];
 
-    for (const transaction of transactions) {
-      const account = await Account.findById(
-        transaction.account
-      );
-
-      if (!account) continue;
-
-      if (transaction.type === "income") {
-        account.balance += transaction.amount;
-      } else if (transaction.type === "expense") {
-        account.balance -= transaction.amount;
-      }
-
-      await account.save();
+    for (const item of payload) {
+      created.push(await this.createTransaction(userId, item));
     }
 
-    return transactions;
+    return created;
   }
 
   // Bulk Delete Transactions
-  async bulkDeleteTransactions(transactionIds = []) {
+  async bulkDeleteTransactions(userId, transactionIds = []) {
     if (!transactionIds.length) {
-      throw new ApiError(
-        400,
-        "Transaction IDs are required."
-      );
+      throw new ApiError(400, "Transaction IDs are required.");
     }
 
-    const transactions = await Transaction.find({
-      _id: {
-        $in: transactionIds,
-      },
-    });
+    let deletedCount = 0;
 
-    for (const transaction of transactions) {
-      const account = await Account.findById(
-        transaction.account
-      );
-
-      if (!account) continue;
-
-      if (transaction.type === "income") {
-        account.balance -= transaction.amount;
-      } else if (transaction.type === "expense") {
-        account.balance += transaction.amount;
-      }
-
-      await account.save();
+    for (const id of transactionIds) {
+      await this.deleteTransaction(id, userId);
+      deletedCount += 1;
     }
 
-    await Transaction.deleteMany({
-      _id: {
-        $in: transactionIds,
-      },
-    });
-
-    return {
-      deletedCount: transactions.length,
-    };
+    return { deletedCount };
   }
 
   // Duplicate Transaction
-  async duplicateTransaction(id) {
-    const transaction = await Transaction.findById(id);
+  async duplicateTransaction(id, userId) {
+    const transaction = await Transaction.findOne({
+      _id: id,
+      isDeleted: false,
+    });
 
     if (!transaction) {
-      throw new ApiError(
-        404,
-        "Transaction not found."
-      );
+      throw new ApiError(404, "Transaction not found.");
     }
 
     const duplicate = transaction.toObject();
 
     delete duplicate._id;
+    delete duplicate.id;
     delete duplicate.createdAt;
     delete duplicate.updatedAt;
+    delete duplicate.audit;
+    delete duplicate.isDeleted;
+    delete duplicate.deletedAt;
 
     duplicate.transactionDate = new Date();
 
-    return this.createTransaction(duplicate);
+    return this.createTransaction(userId, duplicate);
   }
 
     // Get Monthly Summary
@@ -512,7 +502,7 @@ class TransactionService extends BaseService {
                 {
                   $eq: ["$type", "income"],
                 },
-                "$amount",
+                "$money.amount",
                 0,
               ],
             },
@@ -523,7 +513,7 @@ class TransactionService extends BaseService {
                 {
                   $eq: ["$type", "expense"],
                 },
-                "$amount",
+                "$money.amount",
                 0,
               ],
             },
@@ -696,6 +686,7 @@ class TransactionService extends BaseService {
   async getRecentTransactions(workspace, limit = 10) {
     return Transaction.find({
       workspace,
+      isDeleted: false,
     })
       .sort({
         transactionDate: -1,

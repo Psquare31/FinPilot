@@ -18,7 +18,8 @@ import TransactionForm from "../transactions/TransactionForm";
 const monthLabel = (d) => d.toLocaleDateString("en-IN", { month: "short" });
 
 export default function DashboardPage() {
-  const { workspaceId, accounts, categories, currency } = useWorkspace();
+  const { workspaceId, accounts, categories, currency, refreshAccounts } =
+    useWorkspace();
   const toast = useToast();
   const [tx, setTx] = useState([]);
   const [investments, setInvestments] = useState([]);
@@ -51,6 +52,12 @@ export default function DashboardPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId]);
+
+  // Net worth and the account tiles are derived from the workspace's
+  // `accounts`, so a new transaction has to refresh those alongside the rows.
+  const reload = async () => {
+    await Promise.all([load(), refreshAccounts()]);
+  };
 
   const amountOf = (t) => Number(t.money?.amount ?? t.amount ?? 0);
 
@@ -265,7 +272,7 @@ export default function DashboardPage() {
       </div>
 
       {showForm && (
-        <TransactionForm onClose={() => setShowForm(false)} onSaved={load} />
+        <TransactionForm onClose={() => setShowForm(false)} onSaved={reload} />
       )}
     </div>
   );

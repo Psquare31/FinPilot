@@ -10,7 +10,8 @@ import TransactionForm from "./TransactionForm";
 import AccountForm from "../accounts/AccountForm";
 
 export default function TransactionsPage() {
-  const { workspaceId, accounts, categories, currency } = useWorkspace();
+  const { workspaceId, accounts, categories, currency, refreshAccounts } =
+    useWorkspace();
   const toast = useToast();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,11 +43,18 @@ export default function TransactionsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId]);
 
+  // The balance tiles above render from the workspace's `accounts`, so any
+  // change to a transaction has to refresh those too — reloading only the rows
+  // left the balances stale until a full page reload.
+  const reload = async () => {
+    await Promise.all([load(), refreshAccounts()]);
+  };
+
   const remove = async (id) => {
     try {
       await deleteTransaction(id);
       toast.success("Transaction deleted");
-      load();
+      reload();
     } catch (e) {
       toast.error(e.message);
     }
@@ -67,7 +75,7 @@ export default function TransactionsPage() {
     return true;
   });
 
-  const onSaved = () => load();
+  const onSaved = () => reload();
 
   return (
     <div className="page">

@@ -318,7 +318,7 @@ export const updateTransactionSchema = z.object({
         }),
 
     params: z.object({
-        transactionId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -332,7 +332,7 @@ export const deleteTransactionSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        transactionId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -346,7 +346,7 @@ export const getTransactionSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        transactionId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -488,7 +488,9 @@ export const transferTransactionSchema = z.object({
 
         toAccount: objectId,
 
-        amount: moneySchema,
+        // Named `money` to match the transaction payload the transfer is
+        // turned into — a differently-named field silently read as NaN.
+        money: moneySchema,
 
         category: objectId,
 
@@ -520,6 +522,36 @@ export const transferTransactionSchema = z.object({
             });
         }
 
+    }),
+
+    params: z.object({}),
+
+    query: z.object({}),
+});
+
+// =====================================================
+// Bulk Operations
+// =====================================================
+
+export const bulkCreateTransactionsSchema = z.object({
+    body: z.object({
+        transactions: z
+            .array(createTransactionSchema.shape.body)
+            .min(1, "At least one transaction is required.")
+            .max(100, "Cannot create more than 100 transactions at once."),
+    }),
+
+    params: z.object({}),
+
+    query: z.object({}),
+});
+
+export const bulkDeleteTransactionsSchema = z.object({
+    body: z.object({
+        transactionIds: z
+            .array(objectId)
+            .min(1, "At least one transaction ID is required.")
+            .max(100, "Cannot delete more than 100 transactions at once."),
     }),
 
     params: z.object({}),
