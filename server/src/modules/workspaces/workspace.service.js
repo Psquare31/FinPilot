@@ -3,6 +3,8 @@ import ApiError from "../../utils/ApiError.js";
 import workspaceRepository from "./workspace.repository.js";
 import toWorkspaceDto, { toWorkspaceListDto } from "./workspace.mapper.js";
 import { WORKSPACE_PERMISSIONS } from "./workspace.permissions.js";
+import emailService from "../../services/email.service.js";
+import env from "../../config/env/index.js";
 
 class WorkspaceService {
     async checkWorkspaceAccess(workspaceId, userId, roles = []) {
@@ -60,7 +62,7 @@ class WorkspaceService {
         await workspaceRepository.deleteById(workspaceId);
     }
 
-    async inviteMember(workspaceId, email, invitedBy) {
+    async inviteMember(workspaceId, email, invitedBy, role = "member") {
         await this.checkWorkspaceAccess(workspaceId, invitedBy, WORKSPACE_PERMISSIONS.INVITE_MEMBER);
         const user = await workspaceRepository.findUserByEmail(email);
 
@@ -71,23 +73,58 @@ class WorkspaceService {
         });
         if (existingMember) throw new ApiError(400, "User is already a member of this workspace.");
 
-        return workspaceRepository.createMembership({
+        const membership = await workspaceRepository.createMembership({
             workspace: workspaceId,
             user: user._id,
             invitedBy,
-            role: "member",
-            status: "pending",
+            role,
+            status: "invited",
         });
+
+        const workspace = await this.getWorkspaceOrFail(workspaceId);
+        const inviter = await workspaceRepository.findUserById(invitedBy);
+
+        try {
+            await emailService.sendWorkspaceInvite({
+                email,
+                workspace: workspace.name,
+                inviter: inviter?.firstName ? `${inviter.firstName} ${inviter.lastName || ""}`.trim() : "A teammate",
+                inviteLink: `${env.CLIENT_URL}/workspaces/${workspaceId}/invite`,
+            });
+        } catch (error) {
+            console.error("Failed to send workspace invite email:", error.message);
+        }
+
+        return membership;
     }
 
     async acceptInvitation(workspaceId, userId) {
-        const membership = await workspaceRepository.updateMembership(workspaceId, userId, {
+        const invitation = await workspaceRepository.findMembership(workspaceId, userId, {
+            activeOnly: false,
+        });
+        if (!invitation || invitation.status !== "invited") {
+            throw new ApiError(404, "Invitation not found.");
+        }
+
+        return workspaceRepository.updateMembership(workspaceId, userId, {
             status: "active",
             joinedAt: new Date(),
         });
-        if (!membership) throw new ApiError(404, "Invitation not found.");
+    }
 
-        return membership;
+    async getPendingInvitations(userId) {
+        return workspaceRepository.findPendingInvitations(userId);
+    }
+
+    async declineInvitation(workspaceId, userId) {
+        const invitation = await workspaceRepository.findMembership(workspaceId, userId, {
+            activeOnly: false,
+        });
+        if (!invitation || invitation.status !== "invited") {
+            throw new ApiError(404, "Invitation not found.");
+        }
+
+        await workspaceRepository.deleteMembership(workspaceId, userId);
     }
 
     async removeMember(workspaceId, memberId, actingUserId) {

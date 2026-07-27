@@ -71,7 +71,7 @@ export const deleteReportSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        reportId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -85,7 +85,7 @@ export const getReportSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        reportId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),

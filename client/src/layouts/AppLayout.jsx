@@ -5,6 +5,8 @@ import { Icon } from "../components/ui";
 import { useWorkspace } from "../store/WorkspaceContext";
 import { useAuthMode } from "../store/AuthModeContext";
 import { initials } from "../utils/format";
+import NotificationBell from "../features/notifications/NotificationBell";
+import InvitationsBell from "../features/settings/InvitationsBell";
 
 // UserButton requires a ClerkProvider above it, which only exists when the API
 // is running the real Clerk flow. In demo mode render a plain avatar instead.
@@ -80,6 +82,8 @@ export default function AppLayout() {
               <span className="ws-dot" />
               API connected
             </div>
+            <NotificationBell />
+            <InvitationsBell />
             <AccountMenu user={user} />
           </div>
         </header>

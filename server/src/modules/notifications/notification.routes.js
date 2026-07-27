@@ -17,6 +17,10 @@ import validate from "../../middlewares/validate.js";
 
 import {
   createNotificationSchema,
+  getNotificationsSchema,
+  getNotificationSchema,
+  deleteNotificationSchema,
+  markNotificationReadSchema,
 } from "./notification.validation.js";
 
 const router = Router();
@@ -30,7 +34,11 @@ router.post(
   createNotification
 );
 
-router.get("/", getNotifications);
+router.get(
+  "/",
+  validate(getNotificationsSchema),
+  getNotifications
+);
 
 router.get("/summary", getNotificationSummary);
 
@@ -40,10 +48,22 @@ router.patch("/read-all", markAllAsRead);
 
 router.delete("/all", deleteAllNotifications);
 
-router.get("/:id", getNotificationById);
+router.get(
+  "/:id",
+  validate(getNotificationSchema),
+  getNotificationById
+);
 
-router.patch("/:id/read", markAsRead);
+router.patch(
+  "/:id/read",
+  validate(markNotificationReadSchema),
+  markAsRead
+);
 
-router.delete("/:id", deleteNotification);
+router.delete(
+  "/:id",
+  validate(deleteNotificationSchema),
+  deleteNotification
+);
 
 export default router;

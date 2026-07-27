@@ -93,12 +93,13 @@ const deleteWorkspace = asyncHandler(async (req, res) => {
 const inviteMember = asyncHandler(async (req, res) => {
     const { workspaceId } = req.params;
 
-    const { email } = req.validatedData?.body ?? req.body;
+    const { email, role } = req.validatedData?.body ?? req.body;
 
     const member = await workspaceService.inviteMember(
         workspaceId,
         email,
-        req.user._id
+        req.user._id,
+        role
     );
 
     return res.status(201).json(
@@ -106,6 +107,39 @@ const inviteMember = asyncHandler(async (req, res) => {
             201,
             member,
             "Member invited successfully."
+        )
+    );
+});
+
+// Get Pending Invitations (for the current user)
+const getPendingInvitations = asyncHandler(async (req, res) => {
+    const invitations = await workspaceService.getPendingInvitations(
+        req.user._id
+    );
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            invitations,
+            "Pending invitations fetched successfully."
+        )
+    );
+});
+
+// Decline Invitation
+const declineInvitation = asyncHandler(async (req, res) => {
+    const { workspaceId } = req.params;
+
+    await workspaceService.declineInvitation(
+        workspaceId,
+        req.user._id
+    );
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Invitation declined."
         )
     );
 });
@@ -219,7 +253,9 @@ export default {
     updateWorkspace,
     deleteWorkspace,
     inviteMember,
+    getPendingInvitations,
     acceptInvitation,
+    declineInvitation,
     removeMember,
     updateMemberRole,
     getMembers,

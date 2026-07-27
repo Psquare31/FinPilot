@@ -23,7 +23,6 @@ class NotificationService extends BaseService {
 
     const filter = {
       user: userId,
-      isDeleted: false,
     };
 
     if (type) {
@@ -31,7 +30,7 @@ class NotificationService extends BaseService {
     }
 
     if (read !== undefined) {
-      filter.isRead = read === "true";
+      filter.status = read === "true" ? "read" : "unread";
     }
 
     return this.paginate(filter, {
@@ -92,8 +91,7 @@ class NotificationService extends BaseService {
   async getUnreadCount(userId) {
     const count = await Notification.countDocuments({
       user: userId,
-      isRead: false,
-      isDeleted: false,
+      status: "unread",
     });
 
     return {
@@ -106,12 +104,10 @@ class NotificationService extends BaseService {
     const [total, unread] = await Promise.all([
       Notification.countDocuments({
         user: userId,
-        isDeleted: false,
       }),
       Notification.countDocuments({
         user: userId,
-        isRead: false,
-        isDeleted: false,
+        status: "unread",
       }),
     ]);
 

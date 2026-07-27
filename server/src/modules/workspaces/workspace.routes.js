@@ -71,10 +71,21 @@ router.post(
   workspaceController.inviteMember
 );
 
+router.get(
+  "/invitations/pending",
+  workspaceController.getPendingInvitations
+);
+
 router.patch(
   "/:workspaceId/members/accept",
   validate(acceptInvitationSchema),
   workspaceController.acceptInvitation
+);
+
+router.delete(
+  "/:workspaceId/members/decline",
+  validate(acceptInvitationSchema),
+  workspaceController.declineInvitation
 );
 
 router.patch(

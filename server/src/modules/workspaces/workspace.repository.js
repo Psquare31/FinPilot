@@ -17,9 +17,18 @@ class WorkspaceRepository extends BaseRepository {
 
     findUserByEmail(email) { return User.findOne({ email }).lean(); }
 
+    findUserById(userId) { return User.findById(userId).lean(); }
+
     findUserWorkspaces(userId) {
         return WorkspaceMember.find({ user: userId, status: "active" })
             .populate("workspace")
+            .lean();
+    }
+
+    findPendingInvitations(userId) {
+        return WorkspaceMember.find({ user: userId, status: "invited" })
+            .populate("workspace", "name type color icon")
+            .populate("invitedBy", "firstName lastName email")
             .lean();
     }
 
@@ -38,7 +47,7 @@ class WorkspaceRepository extends BaseRepository {
     }
 
     findMembers(workspaceId) {
-        return WorkspaceMember.find({ workspace: workspaceId, status: "active" })
+        return WorkspaceMember.find({ workspace: workspaceId, status: { $in: ["active", "invited"] } })
             .populate("user", "firstName lastName email avatar")
             .lean();
     }

@@ -148,7 +148,7 @@ export const updateBudgetSchema = z.object({
         }),
 
     params: z.object({
-        budgetId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -162,7 +162,7 @@ export const deleteBudgetSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        budgetId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -176,7 +176,7 @@ export const getBudgetSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        budgetId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),

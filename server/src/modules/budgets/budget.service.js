@@ -34,16 +34,18 @@ class BudgetService extends BaseService {
     const {
       page = 1,
       limit = 10,
-      status,
+      isActive,
+      isArchived = false,
     } = query;
 
     const filter = {
       workspace,
       isDeleted: false,
+      isArchived,
     };
 
-    if (status) {
-      filter.status = status;
+    if (isActive !== undefined) {
+      filter.isActive = isActive === "true" || isActive === true;
     }
 
     return this.paginate(filter, {

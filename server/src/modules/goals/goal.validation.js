@@ -178,7 +178,7 @@ export const updateGoalSchema = z.object({
         }),
 
     params: z.object({
-        goalId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -192,7 +192,7 @@ export const deleteGoalSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        goalId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -206,7 +206,7 @@ export const getGoalSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        goalId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),

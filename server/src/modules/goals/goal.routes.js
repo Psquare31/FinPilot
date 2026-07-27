@@ -66,4 +66,4 @@ router.patch(
 
 router.delete("/:id", deleteGoal);
 
-export default router;4
+export default router;

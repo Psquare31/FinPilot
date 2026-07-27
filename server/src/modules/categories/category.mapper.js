@@ -10,7 +10,7 @@ const toCategoryDto = (category) => {
         icon: source.icon,
         color: source.color,
         description: source.description,
-        parent: source.parent,
+        parent: source.parentCategory,
         isDefault: source.isDefault,
         isArchived: source.isArchived,
         createdAt: source.createdAt,

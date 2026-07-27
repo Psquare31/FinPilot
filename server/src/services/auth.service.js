@@ -60,7 +60,7 @@ class AuthService {
 
                 email,
 
-                profileImage: getProfileImage(clerkUser),
+                avatar: { url: getProfileImage(clerkUser) || "" },
 
                 emailVerified:
                     clerkUser.emailAddresses.find(
@@ -83,7 +83,7 @@ class AuthService {
 
         user.email = email;
 
-        user.profileImage = getProfileImage(clerkUser);
+        user.avatar = { url: getProfileImage(clerkUser) || user.avatar?.url || "" };
 
         user.emailVerified =
             clerkUser.emailAddresses.find(
@@ -195,7 +195,9 @@ class AuthService {
             );
         }
 
-        user.status = "DELETED";
+        // ACCOUNT_STATUS is ["active", "inactive", "suspended"] — "DELETED"
+        // isn't a member, so this save() always failed validation.
+        user.status = "inactive";
 
         await user.save();
 

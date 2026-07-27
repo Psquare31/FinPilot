@@ -48,7 +48,7 @@ class DebtService extends BaseService {
     }
 
     if (debtType) {
-      filter.debtType = debtType;
+      filter.type = debtType;
     }
 
     return this.paginate(filter, {

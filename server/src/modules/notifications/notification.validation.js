@@ -142,7 +142,7 @@ export const updateNotificationSchema = z.object({
         ),
 
     params: z.object({
-        notificationId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -156,7 +156,7 @@ export const deleteNotificationSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        notificationId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -170,7 +170,7 @@ export const getNotificationSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        notificationId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -229,7 +229,7 @@ export const markNotificationReadSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        notificationId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -243,7 +243,7 @@ export const markNotificationUnreadSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        notificationId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),

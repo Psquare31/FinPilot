@@ -5,7 +5,7 @@ class CategoryRepository extends BaseRepository {
     constructor() { super(Category); }
 
     findDuplicate(workspaceId, name, type, excludedId) {
-        const filter = { workspace: workspaceId, name, type, isDeleted: false };
+        const filter = { workspace: workspaceId, name, type };
         if (excludedId) filter._id = { $ne: excludedId };
         return this.exists(filter);
     }
@@ -25,13 +25,13 @@ class CategoryRepository extends BaseRepository {
 
     async cloneDefaults(workspaceId) {
         const defaults = await this.find({ isDefault: true });
-        const categories = defaults.map(({ name, icon, color, type, parent, description }) => ({
+        const categories = defaults.map(({ name, icon, color, type, parentCategory, description }) => ({
             workspace: workspaceId,
             name,
             icon,
             color,
             type,
-            parent,
+            parentCategory,
             description,
             isDefault: false,
         }));

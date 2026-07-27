@@ -145,24 +145,25 @@ class GoalService extends BaseService {
       throw new ApiError(404, "Goal not found.");
     }
 
+    const targetAmount = goal.targetAmount.amount;
+    const currentAmount = goal.currentAmount.amount;
+
     const percentage =
-      goal.targetAmount > 0
+      targetAmount > 0
         ? Number(
             (
-              (goal.currentAmount / goal.targetAmount) *
+              (currentAmount / targetAmount) *
               100
             ).toFixed(2)
           )
         : 0;
 
     return {
-      targetAmount: goal.targetAmount,
-      currentAmount: goal.currentAmount,
-      remainingAmount:
-        goal.targetAmount - goal.currentAmount,
+      targetAmount,
+      currentAmount,
+      remainingAmount: targetAmount - currentAmount,
       percentage,
-      completed:
-        goal.currentAmount >= goal.targetAmount,
+      completed: currentAmount >= targetAmount,
     };
   }
 
@@ -171,6 +172,7 @@ class GoalService extends BaseService {
     const goals = await Goal.find({
       workspace,
       isDeleted: false,
+      isArchived: false,
     }).lean();
 
     const totalGoals = goals.length;
@@ -180,12 +182,12 @@ class GoalService extends BaseService {
     ).length;
 
     const totalTarget = goals.reduce(
-      (sum, goal) => sum + goal.targetAmount,
+      (sum, goal) => sum + goal.targetAmount.amount,
       0
     );
 
     const totalSaved = goals.reduce(
-      (sum, goal) => sum + goal.currentAmount,
+      (sum, goal) => sum + goal.currentAmount.amount,
       0
     );
 

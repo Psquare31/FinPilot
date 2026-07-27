@@ -5,6 +5,7 @@ import Workspace from "../models/Workspace.js";
 import reportService from "../services/report.service.js";
 import notificationService from "../services/notification.service.js";
 import emailService from "../services/email.service.js";
+import env from "../config/env/index.js";
 
 import logger from "../config/logger/logger.js";
 
@@ -15,22 +16,22 @@ const monthlyReportsJob = cron.schedule(
       logger.info("Running monthly reports job...");
 
       const workspaces = await Workspace.find({
-        isDeleted: false,
+        status: "active",
       }).populate("owner", "email fullName");
 
       const now = new Date();
 
-      const year = now.getFullYear();
-
-      const month = now.getMonth();
+      // Report for the month that just ended.
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const year = lastMonth.getFullYear();
+      const month = lastMonth.getMonth() + 1;
 
       for (const workspace of workspaces) {
-        const report =
-          await reportService.generateMonthlyReport(
-            workspace._id,
-            month,
-            year
-          );
+        await reportService.generateMonthlyReport(
+          workspace._id,
+          year,
+          month
+        );
 
         await notificationService.createNotification({
           workspace: workspace._id,
@@ -38,13 +39,13 @@ const monthlyReportsJob = cron.schedule(
           title: "Monthly Report Ready",
           message:
             "Your monthly financial report has been generated.",
-          type: "report",
+          type: "system",
         });
 
         if (workspace.owner?.email) {
           await emailService.sendMonthlyReport({
             email: workspace.owner.email,
-            reportUrl: report.downloadUrl,
+            reportUrl: `${env.CLIENT_URL}/reports`,
           });
         }
       }

@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import BaseService from "../../shared/services/base.service.js";
 
 import AuditLog from "../../models/AuditLog.js";
@@ -26,7 +28,6 @@ class AuditLogService extends BaseService {
 
     const filter = {
       workspace,
-      isDeleted: false,
     };
 
     if (user) {
@@ -72,7 +73,7 @@ class AuditLogService extends BaseService {
 
   // Delete Old Logs
   async deleteOldLogs(beforeDate) {
-    const result = await this.deleteMany({
+    const result = await this.model.deleteMany({
       createdAt: {
         $lt: beforeDate,
       },
@@ -88,8 +89,7 @@ class AuditLogService extends BaseService {
     const summary = await this.aggregate([
       {
         $match: {
-          workspace,
-          isDeleted: false,
+          workspace: new mongoose.Types.ObjectId(workspace),
         },
       },
       {
@@ -115,7 +115,6 @@ class AuditLogService extends BaseService {
     return this.model
       .find({
         user: userId,
-        isDeleted: false,
       })
       .sort({
         createdAt: -1,
@@ -130,7 +129,6 @@ class AuditLogService extends BaseService {
       .find({
         resource,
         resourceId,
-        isDeleted: false,
       })
       .sort({
         createdAt: -1,

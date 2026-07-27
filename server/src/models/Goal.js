@@ -89,6 +89,31 @@ const goalSchema = new Schema(
       },
     },
 
+    completedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Every sibling model (Account, Category, Debt, Investment) carries these
+    // flags, and the service layer already filtered/wrote them. Their absence
+    // here meant those conditions silently matched nothing (isDeleted: false
+    // never matches a document that lacks the field), so goals never listed
+    // and archive/restore were no-ops.
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
     audit: {
       type: auditSchema,
       required: true,

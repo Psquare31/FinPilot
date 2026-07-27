@@ -188,7 +188,7 @@ export const updateDebtSchema = z.object({
         ),
 
     params: z.object({
-        debtId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -202,7 +202,7 @@ export const deleteDebtSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        debtId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -216,7 +216,7 @@ export const getDebtSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        debtId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),

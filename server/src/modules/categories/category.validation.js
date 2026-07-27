@@ -122,7 +122,7 @@ export const updateCategorySchema = z.object({
         ),
 
     params: z.object({
-        categoryId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -136,7 +136,7 @@ export const deleteCategorySchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        categoryId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -150,7 +150,7 @@ export const getCategorySchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        categoryId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),

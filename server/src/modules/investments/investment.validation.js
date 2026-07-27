@@ -137,7 +137,7 @@ export const updateInvestmentSchema = z.object({
         ),
 
     params: z.object({
-        investmentId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -151,7 +151,7 @@ export const deleteInvestmentSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        investmentId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -165,7 +165,7 @@ export const getInvestmentSchema = z.object({
     body: z.object({}).optional(),
 
     params: z.object({
-        investmentId: objectId,
+        id: objectId,
     }),
 
     query: z.object({}),
@@ -214,9 +214,9 @@ export const getInvestmentsSchema = z.object({
 
 export const investmentTradeSchema = z.object({
     body: z.object({
-        units: z.coerce
-            .number({ invalid_type_error: "Units must be a number." })
-            .positive("Units must be greater than zero."),
+        quantity: z.coerce
+            .number({ invalid_type_error: "Quantity must be a number." })
+            .positive("Quantity must be greater than zero."),
 
         price: z.coerce
             .number({ invalid_type_error: "Price must be a number." })
