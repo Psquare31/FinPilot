@@ -48,7 +48,7 @@ class NotificationService extends BaseService {
   // Mark Notification as Read
   async markAsRead(id) {
     return this.updateById(id, {
-      isRead: true,
+      status: "read",
       readAt: new Date(),
     });
   }
