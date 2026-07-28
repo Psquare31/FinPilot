@@ -34,6 +34,7 @@ const NAV = [
   { to: "/goals", label: "Goals", icon: "goals" },
   { to: "/investments", label: "Investments", icon: "investments" },
   { to: "/assistant", label: "AI Assistant", icon: "sparkle" },
+  { to: "/settings", label: "Settings", icon: "settings" },
 ];
 
 export default function AppLayout() {

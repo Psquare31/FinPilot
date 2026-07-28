@@ -3,6 +3,14 @@
 
 export const CURRENCIES = ["INR", "USD", "EUR", "GBP", "JPY"];
 
+// Excludes "owner" — ownership is granted via transferOwnership, not the
+// invite/role-change dropdowns.
+export const WORKSPACE_ROLES = [
+  { value: "admin", label: "Admin" },
+  { value: "member", label: "Member" },
+  { value: "viewer", label: "Viewer" },
+];
+
 export const ACCOUNT_TYPES = [
   { value: "savings", label: "Savings", icon: "🏦" },
   { value: "current", label: "Current", icon: "💼" },
