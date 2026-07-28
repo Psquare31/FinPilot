@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { UserButton } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 
 import { Icon } from "../components/ui";
 import { useWorkspace } from "../store/WorkspaceContext";
@@ -20,6 +21,7 @@ function AccountMenu({ user }) {
   return (
     <UserButton
       appearance={{
+        baseTheme: dark,
         variables: { colorBackground: "#161c28", colorText: "#e8edf6" },
         elements: { avatarBox: { width: 34, height: 34 } },
       }}

@@ -1,4 +1,5 @@
 import { SignIn } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 
 // Full-page sign-in shown when the API requires a real Clerk session.
 export default function SignInScreen() {
@@ -27,6 +28,7 @@ export default function SignInScreen() {
         <SignIn
           routing="hash"
           appearance={{
+            baseTheme: dark,
             variables: {
               colorPrimary: "#6366f1",
               colorBackground: "#161c28",
@@ -35,6 +37,15 @@ export default function SignInScreen() {
               colorInputBackground: "#121722",
               colorInputText: "#e8edf6",
               borderRadius: "10px",
+            },
+            elements: {
+              socialButtonsBlockButton: {
+                borderColor: "#33415a",
+                color: "#e8edf6",
+              },
+              dividerLine: { backgroundColor: "#263041" },
+              dividerText: { color: "#9aa7bd" },
+              footerActionText: { color: "#9aa7bd" },
             },
           }}
         />
